@@ -1,0 +1,5 @@
+* @hotpesa/engineering
+/docs/requirements/ @hotpesa/product @hotpesa/engineering
+/docs/adr/ @hotpesa/architecture @hotpesa/security
+/services/api/src/modules/payments/ @hotpesa/payments @hotpesa/security
+/infra/ @hotpesa/platform @hotpesa/security

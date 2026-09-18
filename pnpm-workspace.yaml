@@ -1,0 +1,5 @@
+packages:
+  - "apps/passenger-pwa"
+  - "apps/admin-web"
+  - "services/api"
+  - "packages/*"

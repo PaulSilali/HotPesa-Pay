@@ -1,0 +1,32 @@
+name: hotpesa-development
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hotpesa_dev
+      POSTGRES_PASSWORD: hotpesa_dev_only
+      POSTGRES_USER: hotpesa
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hotpesa -d hotpesa_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - hotpesa_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  hotpesa_postgres_data:

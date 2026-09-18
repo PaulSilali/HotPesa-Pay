@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Require workspace projects and unit tests
+        run: pnpm verify:discovery
+      - run: pnpm verify
+      - name: Audit production dependencies
+        run: pnpm audit --prod --audit-level=high
+      - name: Validate development Docker Compose
+        run: docker compose -f infra/docker/compose.yml config --quiet
+      - name: Detect obvious committed secrets
+        run: |
+          if git grep -nE '(BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|MPESA_(CONSUMER_SECRET|PASSKEY)=[^r])' -- ':!*.example'; then
+            echo 'Potential secret detected'; exit 1
+          fi
