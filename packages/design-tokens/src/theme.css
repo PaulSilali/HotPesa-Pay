@@ -1,0 +1,69 @@
+:root {
+  color-scheme: dark;
+  --hp-bg: #0f172a;
+  --hp-surface: #172033;
+  --hp-surface-raised: #1e293b;
+  --hp-text: #f8fafc;
+  --hp-muted: #a9b7ca;
+  --hp-border: #39475d;
+  --hp-accent: #60a5fa;
+  --hp-accent-strong: #2563eb;
+  --hp-success: #34d399;
+  --hp-danger: #fb7185;
+  --hp-warning: #fbbf24;
+  --hp-focus: #f8fafc;
+  --hp-radius-sm: 0.5rem;
+  --hp-radius-md: 0.875rem;
+  --hp-radius-lg: 1.25rem;
+  --hp-shadow: 0 20px 50px rgb(2 6 23 / 32%);
+  --hp-motion-fast: 120ms;
+  --hp-motion-base: 200ms;
+  --hp-motion-slow: 300ms;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--hp-bg);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--hp-bg);
+  color: var(--hp-text);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button,
+select {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--hp-focus);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

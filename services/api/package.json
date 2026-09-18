@@ -7,13 +7,18 @@
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint src test",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "pnpm --filter @hotpesa/contracts build && tsc --noEmit"
   },
   "dependencies": {
+    "@hotpesa/contracts": "workspace:*",
     "@nestjs/common": "12.0.3",
     "@nestjs/core": "12.0.3",
     "@nestjs/platform-express": "12.0.3",
+    "pg": "8.16.3",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2"
+  },
+  "devDependencies": {
+    "@types/pg": "8.15.5"
   }
 }

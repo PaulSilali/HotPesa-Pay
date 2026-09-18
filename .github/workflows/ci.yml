@@ -25,6 +25,10 @@ jobs:
       - name: Require workspace projects and unit tests
         run: pnpm verify:discovery
       - run: pnpm verify
+      - name: Install Chromium for browser tests
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Require and run browser tests
+        run: pnpm test:e2e
       - name: Audit production dependencies
         run: pnpm audit --prod --audit-level=high
       - name: Validate development Docker Compose

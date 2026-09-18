@@ -7,6 +7,9 @@
     "build": "vite build",
     "lint": "eslint src tests vite.config.ts",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "pnpm --filter @hotpesa/contracts build && tsc --noEmit"
+  },
+  "dependencies": {
+    "@hotpesa/contracts": "workspace:*"
   }
 }

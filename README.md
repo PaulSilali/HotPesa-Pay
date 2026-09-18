@@ -36,3 +36,7 @@ Safaricom sandbox until external approvals and production controls are complete.
 Install with `pnpm install --frozen-lockfile`, then run `pnpm verify`. The verification
 command requires all six workspace projects and at least one unit-test file in each; an
 empty or undiscovered workspace fails instead of producing a false-green result.
+
+For the browser-tested Mock M-Pesa slice, run `pnpm test:e2e` and follow
+`docs/operations/LOCAL_DEMO_RUNBOOK.md`. No live payment credentials are required or
+accepted.
