@@ -103,4 +103,4 @@ Still pending or blocked:
 - Current HEAD: `796e18a` (`feat(auth): enforce workforce assignment context`)
 - Formal PostgreSQL migrations are implemented in `services/api/src/persistence/migrations.ts` with repeat-safe versions `001_payment_store_baseline` and `002_trip_payment_context`.
 - Workforce authorization validates active development identity, tenant membership, conductor role, exact vehicle/route/direction assignment and validity window before trip start. This is a local synthetic fixture, not production OIDC acceptance.
-- Current API verification: typecheck PASS, lint PASS, 31 tests PASS, 2 PostgreSQL-gated tests skipped.
+- Current API verification: typecheck PASS, lint PASS, 33 tests PASS including live migration repeatability and PostgreSQL restart durability; containers were stopped without removing the persistent volume.
