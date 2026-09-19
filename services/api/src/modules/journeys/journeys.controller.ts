@@ -1,13 +1,15 @@
 import { Body, Controller, Get, Headers, Inject, NotFoundException, Param, Post } from '@nestjs/common';
-import type { JourneySessionV1, RouteV1, TripV1 } from '@hotpesa/contracts';
+import type { FareQuoteV1, JourneySessionV1, RouteV1, TripV1 } from '@hotpesa/contracts';
 import { JourneyService, type TripCloseCommand, type TripStartCommand } from './journey.service.js';
 import { PaymentStore } from '../payments/payment.store.js';
+import { FareService } from '../fares/fare.service.js';
 
 @Controller('api/v1/journey-sessions')
 export class JourneysController {
   constructor(
     @Inject(PaymentStore) private readonly store: PaymentStore,
     @Inject(JourneyService) private readonly journeys: JourneyService,
+    @Inject(FareService) private readonly fares: FareService,
   ) {}
 
   @Get('routes/catalog')
@@ -42,6 +44,14 @@ export class JourneysController {
     @Headers('x-role') role: TripCloseCommand['role'] = 'conductor',
   ): TripV1 {
     return this.journeys.closeTrip({ tripId, tenantId, actorId, role, reason: body.reason });
+  }
+
+  @Post(':publicCode/fare-quote')
+  quote(@Param('publicCode') publicCode: string, @Body() body: { readonly destinationStageId?: string }): FareQuoteV1 {
+    const session = this.journeys.journeySessionForPublicCode(publicCode);
+    const trip = session ? this.journeys.tripForActiveSession(session.id) : undefined;
+    if (!trip) throw new NotFoundException('Journey session is unavailable');
+    return this.fares.quote(trip.id, body.destinationStageId ?? '');
   }
 
   @Get(':publicCode')

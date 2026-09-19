@@ -13,6 +13,10 @@ export class HotPesaApi {
     return this.request(`/api/v1/journey-sessions/${encodeURIComponent(publicCode)}`);
   }
 
+  quote(publicCode: string, destinationStageId: string): Promise<{ amountMinor: number; currency: 'KES'; fareVersionId: string; destinationStageId?: string }> {
+    return this.request(`/api/v1/journey-sessions/${encodeURIComponent(publicCode)}/fare-quote`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ destinationStageId }) });
+  }
+
   initiate(command: InitiatePaymentV1, idempotencyKey: string): Promise<PaymentAttemptV1> {
     return this.request('/api/v1/payments', {
       method: 'POST',

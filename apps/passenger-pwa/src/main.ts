@@ -1,6 +1,6 @@
 import '../../../packages/design-tokens/src/theme.css';
 import './passenger.css';
-import type { JourneySessionV1, MockPaymentScenario, PaymentAttemptV1 } from '@hotpesa/contracts';
+import type { FareQuoteV1, JourneySessionV1, MockPaymentScenario, PaymentAttemptV1 } from '@hotpesa/contracts';
 import { ApiError, HotPesaApi } from './api.js';
 import { paymentStatusView } from './payment-status.js';
 import { sessionCodeFromLocation } from './session-code.js';
@@ -76,6 +76,12 @@ function renderJourney(journey: JourneySessionV1): void {
         <h2 id="payment-heading">Request a sandbox prompt</h2>
         <p class="helper">Use synthetic Kenyan-format data only. A request is not proof of payment.</p>
         <form id="payment-form" novalidate>
+          <label for="destination-stage">Destination</label>
+          <select id="destination-stage" name="destinationStageId" required>
+            <option value="">Select destination</option>
+            ${(journey.route?.directions[0]?.stages ?? []).map((stage) => `<option value="${escapeHtml(stage.id)}">${escapeHtml(stage.name)}</option>`).join('')}
+          </select>
+          <p class="field-help" id="fare-quote">Select a destination to obtain the server-calculated fare.</p>
           <label for="phone-number">Sandbox phone number</label>
           <input id="phone-number" name="phoneNumber" type="tel" inputmode="tel" autocomplete="tel"
             value="+254700000001" pattern="\\+254(7|1)[0-9]{8}" aria-describedby="phone-help" required />
@@ -88,7 +94,7 @@ function renderJourney(journey: JourneySessionV1): void {
             <option value="duplicate-callback">Duplicate callback</option>
             <option value="missing-callback">Missing callback</option>
           </select>
-          <button class="primary-button" type="submit">Pay ${amount}</button>
+          <button class="primary-button" type="submit" disabled>Choose a destination</button>
         </form>
         <div id="payment-status" class="status-region" aria-live="polite" aria-atomic="true"></div>
       </section>
@@ -97,6 +103,22 @@ function renderJourney(journey: JourneySessionV1): void {
 
   const form = document.querySelector<HTMLFormElement>('#payment-form');
   form?.addEventListener('submit', (event) => void submitPayment(event, journey));
+  form?.querySelector<HTMLSelectElement>('#destination-stage')?.addEventListener('change', (event) => void quoteDestination(event, journey, form));
+}
+
+async function quoteDestination(event: Event, journey: JourneySessionV1, form: HTMLFormElement): Promise<void> {
+  const destinationStageId = (event.currentTarget as HTMLSelectElement).value;
+  const quoteRoot = requiredElement<HTMLElement>('#fare-quote');
+  const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+  if (!destinationStageId) return;
+  quoteRoot.textContent = 'Calculating approved fare…';
+  if (submit) submit.disabled = true;
+  try {
+    const quote = await api.quote(journey.publicCode, destinationStageId);
+    form.dataset.quoteAmountMinor = String(quote.amountMinor);
+    quoteRoot.textContent = `Approved fare: ${new Intl.NumberFormat('en-KE', { style: 'currency', currency: quote.currency }).format(quote.amountMinor / 100)}.`;
+    if (submit) { submit.disabled = false; submit.textContent = 'Request sandbox prompt'; }
+  } catch (error) { quoteRoot.textContent = errorMessage(error); }
 }
 
 async function submitPayment(event: SubmitEvent, journey: JourneySessionV1): Promise<void> {
@@ -107,13 +129,15 @@ async function submitPayment(event: SubmitEvent, journey: JourneySessionV1): Pro
   const data = new FormData(form);
   const phoneNumber = String(data.get('phoneNumber') ?? '');
   const scenario = String(data.get('scenario') ?? '') as MockPaymentScenario;
+  const destinationStageId = String(data.get('destinationStageId') ?? '');
+  if (!destinationStageId || !form.dataset.quoteAmountMinor) return;
   setFormDisabled(form, true);
   if (submit) submit.textContent = 'Requesting prompt…';
   renderStatus({ status: 'initiating' });
 
   try {
     let payment = await api.initiate(
-      { journeySessionId: journey.id, phoneNumber, scenario },
+      { journeySessionId: journey.id, destinationStageId, phoneNumber, scenario },
       crypto.randomUUID(),
     );
     renderStatus(payment);
