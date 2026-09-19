@@ -1,7 +1,8 @@
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { PaymentState, RouteDirectionV1, RouteStageV1, RouteV1, TripSummaryV1, TripV1 } from '@hotpesa/contracts';
 import { randomUUID } from 'node:crypto';
 import { PaymentStore } from '../payments/payment.store.js';
+import { WorkforceAuthorizationService } from '../authorization/workforce.service.js';
 
 export interface TripStartCommand {
   readonly tenantId: string;
@@ -19,16 +20,6 @@ export interface TripCloseCommand {
   readonly reason?: string;
 }
 
-interface Assignment {
-  readonly tenantId: string;
-  readonly conductorId: string;
-  readonly vehicleId: string;
-  readonly routeId: string;
-  readonly directionId: string;
-  readonly validFrom: string;
-  readonly validTo?: string;
-  readonly revokedAt?: string;
-}
 
 const stages: readonly RouteStageV1[] = [
   { id: 'stage-cbd', name: 'Nairobi CBD', sequence: 1 },
@@ -50,20 +41,11 @@ const demoRoute: RouteV1 = {
   directions: [direction],
 };
 
-const demoAssignment: Assignment = {
-  tenantId: 'tenant-demo-sacco',
-  conductorId: 'conductor-demo',
-  vehicleId: 'vehicle-demo-kaa-000d',
-  routeId: demoRoute.id,
-  directionId: direction.id,
-  validFrom: '2026-01-01T00:00:00.000Z',
-};
-
 @Injectable()
 export class JourneyService {
   private readonly trips = new Map<string, TripV1>();
 
-  constructor(@Inject(PaymentStore) private readonly payments: PaymentStore = new PaymentStore()) {}
+  constructor(@Inject(PaymentStore) private readonly payments: PaymentStore = new PaymentStore(), @Inject(WorkforceAuthorizationService) private readonly authorization: WorkforceAuthorizationService = new WorkforceAuthorizationService()) {}
 
   listRoutes(tenantId: string): readonly RouteV1[] {
     return tenantId === demoRoute.tenantId ? [demoRoute] : [];
@@ -115,8 +97,7 @@ export class JourneyService {
     const selectedDirection = route.directions.find((item) => item.id === command.directionId);
     if (!selectedDirection) throw new NotFoundException('Route direction not found');
 
-    const activeAssignment = this.isAssignmentValid(command, now);
-    if (!activeAssignment) throw new UnauthorizedException('Active conductor assignment is required');
+    this.authorization.authorizeTripStart(command, now);
 
     const activeForConductor = [...this.trips.values()].find(
       (trip) => trip.conductorId === command.conductorId && trip.state === 'active',
@@ -145,18 +126,6 @@ export class JourneyService {
     return trip;
   }
 
-  private isAssignmentValid(command: TripStartCommand, now: Date): boolean {
-    if (
-      command.tenantId !== demoAssignment.tenantId ||
-      command.conductorId !== demoAssignment.conductorId ||
-      command.vehicleId !== demoAssignment.vehicleId ||
-      command.routeId !== demoAssignment.routeId ||
-      command.directionId !== demoAssignment.directionId ||
-      demoAssignment.revokedAt
-    ) return false;
-    const timestamp = now.toISOString();
-    return timestamp >= demoAssignment.validFrom && (!demoAssignment.validTo || timestamp < demoAssignment.validTo);
-  }
 }
 
 function summarize(states: readonly PaymentState[], amounts: readonly number[]): TripSummaryV1 {

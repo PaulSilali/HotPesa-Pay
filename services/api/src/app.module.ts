@@ -12,6 +12,7 @@ import { MockPaymentsController } from './modules/payments/mock-payments.control
 import { PaymentStore } from './modules/payments/payment.store.js';
 import { PaymentsController } from './modules/payments/payments.controller.js';
 import { PaymentsService } from './modules/payments/payments.service.js';
+import { WorkforceAuthorizationService } from './modules/authorization/workforce.service.js';
 
 @Module({
   controllers: [
@@ -22,6 +23,6 @@ import { PaymentsService } from './modules/payments/payments.service.js';
     AdminPaymentsController,
     FaresController,
   ],
-  providers: [AppService, PaymentStore, JourneyService, FareService, MockMpesaProvider, AuditService, PaymentsService],
+  providers: [AppService, PaymentStore, JourneyService, FareService, MockMpesaProvider, AuditService, PaymentsService, WorkforceAuthorizationService],
 })
 export class AppModule {}

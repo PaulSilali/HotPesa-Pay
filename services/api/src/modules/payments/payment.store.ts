@@ -7,6 +7,7 @@ import type {
   ProviderEvidenceV1,
 } from '@hotpesa/contracts';
 import { Pool } from 'pg';
+import { runMigrations } from '../../persistence/migrations.js';
 
 export interface StoredPayment {
   readonly id: string;
@@ -54,7 +55,7 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) throw new Error('DATABASE_URL is required when HOTPESA_STORE=postgres');
     this.pool = new Pool({ connectionString, max: 5 });
-    await this.createSchema();
+    await runMigrations(this.pool);
     await this.loadSnapshot();
   }
 
@@ -144,43 +145,6 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
     this.pendingWrite = this.pendingWrite.then(async () => {
       await this.pool?.query(sql, [...values]);
     });
-  }
-
-  private async createSchema(): Promise<void> {
-    await this.pool?.query(`
-      CREATE TABLE IF NOT EXISTS payment_attempts (
-        id text PRIMARY KEY,
-        journey_session_id text NOT NULL,
-        trip_id text,
-        destination_stage_id text,
-        amount_minor integer NOT NULL CHECK (amount_minor > 0),
-        currency text NOT NULL CHECK (currency = 'KES'),
-        fare_version_id text NOT NULL,
-        status text NOT NULL,
-        scenario text NOT NULL,
-        masked_phone_number text NOT NULL,
-        idempotency_key text NOT NULL UNIQUE,
-        request_fingerprint text NOT NULL,
-        provider_request_id text,
-        created_at timestamptz NOT NULL,
-        updated_at timestamptz NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS provider_events (
-        event_id text PRIMARY KEY,
-        provider_request_id text NOT NULL,
-        outcome text NOT NULL,
-        occurred_at timestamptz NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS audit_events (
-        id text PRIMARY KEY,
-        type text NOT NULL,
-        payment_attempt_id text NOT NULL,
-        occurred_at timestamptz NOT NULL,
-        details jsonb NOT NULL
-      );
-      ALTER TABLE payment_attempts ADD COLUMN IF NOT EXISTS trip_id text;
-      ALTER TABLE payment_attempts ADD COLUMN IF NOT EXISTS destination_stage_id text;
-    `);
   }
 
   private async loadSnapshot(): Promise<void> {
