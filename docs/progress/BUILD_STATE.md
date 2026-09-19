@@ -3,7 +3,7 @@
 ## Repository baseline inspected for this correction
 
 - Recorded: 2026-09-19 (Africa/Nairobi)
-- Parent HEAD inspected before this correction: `cf3d53dd2e48490f8a25de727b70696d29271a3e`
+- Baseline HEAD inspected before this correction: `c5e8a0ce791057691a0f48c2159e9021da061b20`
 - Branch: `main`, tracking `origin/main`
 - Remote: `https://github.com/PaulSilali/HotPesa-Pay.git`
 - Recent history: `cf3d53d feat: complete Phase 0 Mock M-Pesa vertical slice`;
@@ -30,7 +30,7 @@ the workflow completes.
 | Test discovery | PASS — 6 runnable workspace projects and 11 unit/integration test files discovered; 1 Playwright file discovered. |
 | Lint | PASS — all 6 runnable workspace projects plus root Playwright/E2E files passed. An earlier root invocation lacked pnpm on `PATH`; it is not counted as lint evidence. |
 | Type checking | PASS — all 6 runnable workspace projects passed. |
-| Unit, package and integration tests | PASS — 31/31 tests passed: 3 contracts, 22 API, 3 passenger, 1 admin, 1 design-token and 1 config test. The API total includes one live PostgreSQL durability test. |
+| Unit, package and integration tests | PASS — 31/31 tests passed: 3 contracts, 23 API, 3 passenger, 1 admin, 1 design-token and 1 config test. The API total includes one live PostgreSQL durability test. |
 | PostgreSQL durability | PASS — live development PostgreSQL verified application-store restart, persisted payment state, idempotent replay and collision rejection, duplicate-event stability and phone/audit redaction. The first run hit Vitest's 5-second default timeout; the unchanged assertions passed after an explicit 30-second integration timeout. |
 | Redis runtime health | PASS — development Redis container reached healthy state and `redis-cli ping` returned `PONG`; no Redis-backed job implementation is claimed. |
 | Build | PASS — all 6 runnable workspace builds passed. |
@@ -65,9 +65,11 @@ Still pending or blocked:
 - formal approval of the controlled specifications and Phase 0 acceptance;
 - resolution of the Document 05 versus Document 11 ADR-number conflict;
 - branch protection, verified CODEOWNERS identities and passing hosted CI for this commit;
-- SAST, container and IaC scanning;
+- hosted execution of the configured CodeQL SAST and Trivy vulnerability/misconfiguration
+  gates (the workflow is configured, but this correction has not yet run in hosted CI);
 - Android hotspot/device/runtime proof;
-- scheduled provider-status retries and provider-unavailable tests;
+- scheduled provider-status retries; provider-unavailable no-confirmation behavior is
+  covered by a local unit test, but no external provider integration is claimed;
 - workforce OIDC and tenant-authorization acceptance evidence;
 - legal, privacy, SACCO, production-provider, merchant-settlement, hosting/region and
   production incident-owner decisions.

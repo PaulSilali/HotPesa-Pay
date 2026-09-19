@@ -14,9 +14,10 @@ historical or design-only claims are not treated as current runtime proof.
 - [x] Current local documentation, discovery, lint, typecheck, unit/integration, build and
   Playwright gates pass. Evidence: `docs/progress/BUILD_STATE.md` correction results;
   31/31 tests, 6/6 builds and 3/3 browser journeys passed.
-- [ ] Dependency, SAST, container and IaC scanning selected and enabled. **Pending:** a
-  production dependency audit and basic secret scan exist; SAST/container/IaC scanning
-  are not enabled (Security/Platform).
+- [ ] Hosted dependency, SAST, container and IaC security gates pass. **Configured:** pnpm
+  audit, repository secret scan, CodeQL SAST and Trivy vulnerability/misconfiguration
+  scanning in `.github/workflows/ci.yml`. **Pending:** hosted execution for this correction;
+  no project Dockerfile exists for an image scan in this baseline.
 - [x] Development Compose configuration is localhost-bound and uses development-only
   values. Evidence: `infra/docker/compose.yml`, `.env.example`, and current
   `docker compose ... config --quiet` exit 0.
@@ -54,8 +55,11 @@ historical or design-only claims are not treated as current runtime proof.
   are explicit. Evidence: `packages/contracts/tests/contracts.test.ts`.
 - [x] Manual reconciliation repairs a missing Mock callback using trusted status evidence.
   Evidence: `payments.service.test.ts`.
-- [ ] Scheduled status-query retries and provider-unavailable behavior are tested.
-  **Pending:** the slice exposes manual reconciliation only (Backend/QA).
+- [ ] Scheduled status-query retries are tested. **Pending:** no scheduler exists in the
+  Phase 0 slice (Backend/QA).
+- [x] Provider-unavailable initiation does not report a confirmed payment. Evidence:
+  `services/api/test/payments.service.test.ts`; this is a local failure-path assertion,
+  not provider integration evidence.
 - [x] PostgreSQL application-store restart, persistence, idempotency, duplicate-event and
   redaction behavior pass against the live development database. Evidence:
   `services/api/test/postgres.durability.test.ts` passed against PostgreSQL 16 on

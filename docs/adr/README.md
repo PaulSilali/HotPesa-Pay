@@ -2,6 +2,8 @@
 
 The controlled register is Document 11:
 [Architecture Decision Record and Decision Log](../specifications/11_Architecture_Decision_Record_and_Decision_Log_ADR_HotPesa_Pay_Detailed_Final.md).
+The proposed collision-resolution approach is documented in
+[ADR_RECONCILIATION_PLAN.md](ADR_RECONCILIATION_PLAN.md); no renumbering has been applied.
 The individual records in this directory are synchronized extracts for repository use;
 they do not change the controlled register's status or confer production authorization.
 

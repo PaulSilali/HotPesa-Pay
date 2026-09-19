@@ -40,3 +40,50 @@ jobs:
           if git grep -nE '(BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|MPESA_(CONSUMER_SECRET|PASSKEY)=[^r])' -- ':!*.example'; then
             echo 'Potential secret detected'; exit 1
           fi
+      - name: Scan repository configuration and dependencies with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          skip-dirs: node_modules,dist,test-results
+          exit-code: '1'
+      - name: Check whether a project container image exists
+        shell: bash
+        run: |
+          if find . -path './.git' -prune -o -name Dockerfile -print -quit | grep -q .; then
+            echo 'A project Dockerfile exists; add a pinned image build and Trivy image scan before enabling deployment.'
+          else
+            echo 'No project Dockerfile exists; container-image scanning is not applicable to this baseline.'
+          fi
+
+  sast:
+    name: SAST (CodeQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - name: Build for CodeQL
+        run: pnpm -r build
+      - name: Analyze with CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:javascript-typescript

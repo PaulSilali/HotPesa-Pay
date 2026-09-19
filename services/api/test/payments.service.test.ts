@@ -95,6 +95,29 @@ describe('PaymentsService', () => {
     await expect(service.reconcile(pending.id)).resolves.toMatchObject({ status: 'review-required' });
   });
 
+  it('does not report confirmation when provider initiation is unavailable', async () => {
+    class UnavailableProvider extends MockMpesaProvider {
+      override async initiate(): Promise<never> {
+        throw new Error('provider unavailable');
+      }
+    }
+
+    const unavailable = new PaymentsService(store, new UnavailableProvider(), audit);
+
+    await expect(
+      unavailable.initiate(
+        {
+          journeySessionId: 'journey-session-demo',
+          phoneNumber: '+254755555555',
+          scenario: 'confirmed',
+        },
+        'idem-provider-unavailable-001',
+      ),
+    ).rejects.toThrow('provider unavailable');
+    expect(JSON.stringify(unavailable.list())).not.toContain('"status":"confirmed"');
+    expect(JSON.stringify(audit.list())).not.toContain('payment.provider-accepted');
+  });
+
   it('does not expire a confirmed payment', async () => {
     const pending = await service.initiate(
       {
