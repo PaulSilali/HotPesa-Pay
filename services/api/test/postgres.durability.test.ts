@@ -38,14 +38,14 @@ describeWithPostgres('PostgreSQL payment durability', () => {
     await initialStore.onModuleInit();
     const firstAudit = new AuditService(initialStore);
     const journeyService = new JourneyService(initialStore);
-    const trip = journeyService.startTrip({
+    await journeyService.onModuleInit();
+    const trip = await journeyService.startTrip({
       tenantId: 'tenant-demo-sacco', conductorId: 'conductor-demo', vehicleId: 'vehicle-demo-kaa-000d',
       routeId: 'route-cbd-westlands', directionId: 'direction-cbd-westlands',
     }, new Date('2026-09-19T12:00:00.000Z'));
-    const firstService = new PaymentsService(initialStore, new MockMpesaProvider(), firstAudit, new FareService(journeyService));
+    const firstService = new PaymentsService(initialStore, new MockMpesaProvider(), firstAudit, new FareService(journeyService), journeyService);
     const command = {
-      journeySessionId: 'journey-session-demo',
-      tripId: trip.id,
+      journeySessionId: journeyService.journeySessionForPublicCode(trip.publicCode)?.id,
       destinationStageId: 'stage-westlands',
       phoneNumber: fullPhone,
       scenario: 'duplicate-callback' as const,
@@ -62,18 +62,24 @@ describeWithPostgres('PostgreSQL payment durability', () => {
     expect(JSON.stringify(firstAudit.list())).not.toContain(fullPhone);
 
     await initialStore.onApplicationShutdown();
+    await journeyService.onApplicationShutdown();
     firstStore = undefined;
 
     const restartedStore = new PaymentStore();
     await restartedStore.onModuleInit();
+    const restartedJourneyService = new JourneyService(restartedStore);
+    await restartedJourneyService.onModuleInit();
     try {
       const restartedAudit = new AuditService(restartedStore);
       const restartedService = new PaymentsService(
         restartedStore,
         new MockMpesaProvider(),
         restartedAudit,
-        new FareService(journeyService),
+        new FareService(restartedJourneyService),
+        restartedJourneyService,
       );
+
+      expect(restartedJourneyService.journeySessionForPublicCode(trip.publicCode)?.publicCode).toBe(trip.publicCode);
 
       expect(restartedService.get(paymentId)).toMatchObject({
         id: paymentId,
@@ -97,6 +103,12 @@ describeWithPostgres('PostgreSQL payment durability', () => {
       ).toBeGreaterThanOrEqual(2);
       expect(JSON.stringify(restartedService.list())).not.toContain(fullPhone);
       expect(JSON.stringify(restartedAudit.list())).not.toContain(fullPhone);
+      await restartedJourneyService.closeTrip({ tripId: trip.id, tenantId: trip.tenantId, actorId: trip.conductorId, role: 'conductor' });
+      await restartedJourneyService.onApplicationShutdown();
+      const closedJourneyService = new JourneyService(restartedStore);
+      await closedJourneyService.onModuleInit();
+      expect(closedJourneyService.journeySessionForPublicCode(trip.publicCode)).toBeUndefined();
+      await closedJourneyService.onApplicationShutdown();
     } finally {
       await restartedStore.onApplicationShutdown();
     }

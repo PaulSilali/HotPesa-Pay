@@ -26,7 +26,7 @@ export class JourneysController {
   startTrip(
     @Body() command: Omit<TripStartCommand, 'tenantId'>,
     @Headers('x-tenant-id') tenantId = 'tenant-demo-sacco',
-  ): TripV1 {
+  ): Promise<TripV1> {
     return this.journeys.startTrip({ ...command, tenantId });
   }
 
@@ -42,7 +42,7 @@ export class JourneysController {
     @Headers('x-tenant-id') tenantId = 'tenant-demo-sacco',
     @Headers('x-workforce-id') actorId = 'conductor-demo',
     @Headers('x-role') role: TripCloseCommand['role'] = 'conductor',
-  ): TripV1 {
+  ): Promise<TripV1> {
     return this.journeys.closeTrip({ tripId, tenantId, actorId, role, reason: body.reason });
   }
 

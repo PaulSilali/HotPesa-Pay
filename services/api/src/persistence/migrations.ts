@@ -46,9 +46,27 @@ export const migrations: readonly Migration[] = [
       ALTER TABLE payment_attempts ADD COLUMN IF NOT EXISTS destination_stage_id text;
     `,
   },
+  {
+    version: '003_trip_and_journey_session_lifecycle',
+    sql: `
+      CREATE TABLE IF NOT EXISTS trips (
+        id text PRIMARY KEY, public_code text NOT NULL UNIQUE, tenant_id text NOT NULL,
+        conductor_id text NOT NULL, vehicle_id text NOT NULL, route_id text NOT NULL,
+        direction_id text NOT NULL, fare_version_id text NOT NULL, state text NOT NULL,
+        started_at timestamptz NOT NULL, closed_at timestamptz, summary jsonb
+      );
+      CREATE TABLE IF NOT EXISTS journey_sessions (
+        id text PRIMARY KEY, public_code text NOT NULL UNIQUE, trip_id text NOT NULL REFERENCES trips(id),
+        tenant_id text NOT NULL, state text NOT NULL, created_at timestamptz NOT NULL, closed_at timestamptz
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS journey_sessions_one_active_per_trip ON journey_sessions (trip_id) WHERE state = 'active';
+    `,
+  },
 ];
 
 export async function runMigrations(pool: Pick<Pool, 'query'>): Promise<readonly string[]> {
+  await pool.query('SELECT pg_advisory_lock(8152026)');
+  try {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS _hotpesa_migrations (
       version text PRIMARY KEY,
@@ -74,5 +92,8 @@ export async function runMigrations(pool: Pick<Pool, 'query'>): Promise<readonly
     }
   }
 
-  return newlyApplied;
+    return newlyApplied;
+  } finally {
+    await pool.query('SELECT pg_advisory_unlock(8152026)');
+  }
 }

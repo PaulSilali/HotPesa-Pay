@@ -31,6 +31,7 @@ describeWithPostgres('PostgreSQL migrations', () => {
     expect(migrations.map((migration) => migration.version)).toEqual([
       '001_payment_store_baseline',
       '002_trip_payment_context',
+      '003_trip_and_journey_session_lifecycle',
     ]);
     expect(first.length).toBeGreaterThanOrEqual(0);
     expect(second).toEqual([]);

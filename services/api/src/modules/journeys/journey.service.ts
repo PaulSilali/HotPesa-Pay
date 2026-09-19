@@ -1,8 +1,9 @@
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, type OnApplicationShutdown, type OnModuleInit } from '@nestjs/common';
 import type { JourneySessionV1, PaymentState, RouteDirectionV1, RouteStageV1, RouteV1, TripSummaryV1, TripV1 } from '@hotpesa/contracts';
 import { randomUUID } from 'node:crypto';
 import { PaymentStore } from '../payments/payment.store.js';
 import { WorkforceAuthorizationService } from '../authorization/workforce.service.js';
+import { JourneyRepository, type PersistedSession } from './journey.repository.js';
 
 export interface TripStartCommand {
   readonly tenantId: string;
@@ -42,11 +43,22 @@ const demoRoute: RouteV1 = {
 };
 
 @Injectable()
-export class JourneyService {
+export class JourneyService implements OnModuleInit, OnApplicationShutdown {
   private readonly trips = new Map<string, TripV1>();
   private readonly sessions = new Map<string, { readonly id: string; readonly publicCode: string; readonly tripId: string; readonly tenantId: string; state: 'active' | 'closed'; readonly createdAt: string; closedAt?: string }>();
 
   constructor(@Inject(PaymentStore) private readonly payments: PaymentStore = new PaymentStore(), @Inject(WorkforceAuthorizationService) private readonly authorization: WorkforceAuthorizationService = new WorkforceAuthorizationService()) {}
+  private repository?: JourneyRepository;
+
+  async onModuleInit(): Promise<void> {
+    if (process.env.HOTPESA_STORE !== 'postgres' || !process.env.DATABASE_URL) return;
+    this.repository = new JourneyRepository(process.env.DATABASE_URL);
+    await this.repository.initialize();
+    const restored = await this.repository.load();
+    for (const trip of restored.trips) this.trips.set(trip.id, trip);
+    for (const session of restored.sessions) this.sessions.set(session.publicCode, session);
+  }
+  async onApplicationShutdown(): Promise<void> { await this.repository?.shutdown(); }
 
   listRoutes(tenantId: string): readonly RouteV1[] {
     return tenantId === demoRoute.tenantId ? [demoRoute] : [];
@@ -97,7 +109,7 @@ export class JourneyService {
     return trip;
   }
 
-  closeTrip(command: TripCloseCommand, now = new Date()): TripV1 {
+  async closeTrip(command: TripCloseCommand, now = new Date()): Promise<TripV1> {
     const current = this.getTrip(command.tripId, command.tenantId);
     if (current.state !== 'active') return current;
     if (command.role === 'conductor' && current.conductorId !== command.actorId) {
@@ -115,10 +127,11 @@ export class JourneyService {
     const closed: TripV1 = { ...current, state: 'closed', closedAt: now.toISOString(), summary };
     this.trips.set(closed.id, closed);
     for (const session of this.sessions.values()) if (session.tripId === closed.id && session.state === 'active') { session.state = 'closed'; session.closedAt = closed.closedAt; }
+    await this.repository?.close(closed);
     return closed;
   }
 
-  startTrip(command: TripStartCommand, now = new Date()): TripV1 {
+  async startTrip(command: TripStartCommand, now = new Date()): Promise<TripV1> {
     const route = this.getRoute(command.routeId, command.tenantId);
     const selectedDirection = route.directions.find((item) => item.id === command.directionId);
     if (!selectedDirection) throw new NotFoundException('Route direction not found');
@@ -148,11 +161,13 @@ export class JourneyService {
       state: 'active',
       startedAt,
     };
-    this.trips.set(trip.id, trip);
     const publicCode = `journey_${randomUUID().replaceAll('-', '')}`;
-    this.sessions.set(publicCode, { id: randomUUID(), publicCode, tripId: trip.id, tenantId: trip.tenantId, state: 'active', createdAt: startedAt });
-    this.trips.set(trip.id, { ...trip, publicCode });
-    return this.trips.get(trip.id)!;
+    const persisted = { ...trip, publicCode };
+    const session: PersistedSession = { id: randomUUID(), publicCode, tripId: persisted.id, tenantId: persisted.tenantId, state: 'active', createdAt: startedAt };
+    await this.repository?.create(persisted, session);
+    this.sessions.set(publicCode, session);
+    this.trips.set(persisted.id, persisted);
+    return persisted;
   }
 
 }

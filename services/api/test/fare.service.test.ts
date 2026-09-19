@@ -4,9 +4,9 @@ import { FareService } from '../src/modules/fares/fare.service.js';
 import { JourneyService } from '../src/modules/journeys/journey.service.js';
 
 describe('FareService', () => {
-  it('calculates a deterministic server quote for a valid destination', () => {
+  it('calculates a deterministic server quote for a valid destination', async () => {
     const journeys = new JourneyService();
-    const trip = journeys.startTrip({
+    const trip = await journeys.startTrip({
       tenantId: 'tenant-demo-sacco',
       conductorId: 'conductor-demo',
       vehicleId: 'vehicle-demo-kaa-000d',
@@ -25,9 +25,9 @@ describe('FareService', () => {
     });
   });
 
-  it('rejects a boarding stage or unknown destination', () => {
+  it('rejects a boarding stage or unknown destination', async () => {
     const journeys = new JourneyService();
-    const trip = journeys.startTrip({
+    const trip = await journeys.startTrip({
       tenantId: 'tenant-demo-sacco', conductorId: 'conductor-demo', vehicleId: 'vehicle-demo-kaa-000d',
       routeId: 'route-cbd-westlands', directionId: 'direction-cbd-westlands',
     }, new Date('2026-09-19T12:00:00.000Z'));
