@@ -96,3 +96,11 @@ Still pending or blocked:
 - Development data is synthetic; logs and evidence must remain redacted.
 - No live credentials, real-money access, infrastructure deployment or MVP expansion is
   authorized by this baseline.
+
+## Phase 1 Sprint 2 correction evidence (2026-09-19)
+
+- Current branch: `feature/phase-1-payment-vertical-slice`
+- Current HEAD: `796e18a` (`feat(auth): enforce workforce assignment context`)
+- Formal PostgreSQL migrations are implemented in `services/api/src/persistence/migrations.ts` with repeat-safe versions `001_payment_store_baseline` and `002_trip_payment_context`.
+- Workforce authorization validates active development identity, tenant membership, conductor role, exact vehicle/route/direction assignment and validity window before trip start. This is a local synthetic fixture, not production OIDC acceptance.
+- Current API verification: typecheck PASS, lint PASS, 31 tests PASS, 2 PostgreSQL-gated tests skipped.

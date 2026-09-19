@@ -58,3 +58,9 @@ until the formal DOCX publication process runs.
 - **Deferred:** intentionally outside the current Phase 0 proof or awaiting its approved gate.
 - **Blocked:** evidence cannot be produced until a named runtime or external decision is available.
 - **Not started:** no conforming implementation evidence exists.
+
+## Phase 1 Sprint 2 evidence
+
+| Outcome | Requirements | ADRs | Implementation evidence | Test evidence | State |
+| --- | --- | --- | --- | --- | --- |
+| Formal migrations and workforce assignment authorization | FR-JRN-001/003; FR-ADM-003; SEC-IAM-*; SEC-AUTHZ-001; SEC-DEV-001; US-CON-001; US-OPS-002 | ADR-017; TRD AP-006; ADR-001/002/006 | `services/api/src/persistence/migrations.ts`; `services/api/src/modules/authorization/workforce.service.ts`; `journey.service.ts` | `migrations.test.ts`; `workforce.authorization.test.ts`; journey and HTTP regression suites | Implemented and tested locally with deterministic synthetic fixtures; production IdP, tenant governance and controlled publication remain pending |
