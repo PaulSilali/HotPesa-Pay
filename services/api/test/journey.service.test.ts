@@ -50,4 +50,15 @@ describe('JourneyService', () => {
     service.startTrip(command, new Date('2026-09-19T12:00:00.000Z'));
     expect(() => service.startTrip(command, new Date('2026-09-19T12:01:00.000Z'))).toThrow(ConflictException);
   });
+
+  it('creates an opaque active passenger session and invalidates it on closure', () => {
+    const service = new JourneyService();
+    const trip = service.startTrip({ tenantId: 'tenant-demo-sacco', conductorId: 'conductor-demo', vehicleId: 'vehicle-demo-kaa-000d', routeId: 'route-cbd-westlands', directionId: 'direction-cbd-westlands' }, new Date('2026-09-19T12:00:00.000Z'));
+    const session = service.journeySessionForPublicCode(trip.publicCode);
+    expect(session?.id).not.toBe(trip.id);
+    expect(session?.route?.directions[0]?.stages).toHaveLength(3);
+    service.closeTrip({ tripId: trip.id, tenantId: trip.tenantId, actorId: trip.conductorId, role: 'conductor' });
+    expect(service.journeySessionForPublicCode(trip.publicCode)).toBeUndefined();
+    expect(service.journeySessionForPublicCode('malformed code!')).toBeUndefined();
+  });
 });

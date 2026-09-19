@@ -28,20 +28,23 @@ export class PaymentsService {
     @Inject(MockMpesaProvider) private readonly provider: MockMpesaProvider,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(FareService) private readonly fares: FareService = new FareService(new JourneyService()),
+    @Inject(JourneyService) private readonly journeys: JourneyService = new JourneyService(),
   ) {}
 
   async initiate(command: InitiatePaymentV1, idempotencyKey: string): Promise<PaymentAttemptV1> {
     this.validateInitiation(command, idempotencyKey);
-    const tripQuote = command.tripId && command.destinationStageId
-      ? this.fares.quote(command.tripId, command.destinationStageId)
+    const sessionTrip = command.journeySessionId ? this.journeys.tripForActiveSession(command.journeySessionId) : undefined;
+    const effectiveTripId = command.tripId ?? sessionTrip?.id;
+    const tripQuote = effectiveTripId && command.destinationStageId
+      ? this.fares.quote(effectiveTripId, command.destinationStageId)
       : undefined;
     const journeySessionId = command.journeySessionId ?? 'journey-session-demo';
-    const journey = this.store.journeyByPublicCode(
+    const journey = (command.journeySessionId ? this.journeys.journeySessionById(command.journeySessionId) : undefined) ?? this.store.journeyByPublicCode(
       journeySessionId === 'journey-session-demo'
         ? 'demo-nairobi-cbd-westlands'
         : journeySessionId,
     );
-    if (!journey || journey.id !== journeySessionId) {
+    if (!journey || (journey.id !== journeySessionId && journey.publicCode !== journeySessionId)) {
       throw new NotFoundException('Journey session not found');
     }
 
@@ -58,7 +61,7 @@ export class PaymentsService {
     let payment: StoredPayment = {
       id: randomUUID(),
       journeySessionId: journey.id,
-      ...(command.tripId ? { tripId: command.tripId } : {}),
+      ...(effectiveTripId ? { tripId: effectiveTripId } : {}),
       ...(command.destinationStageId ? { destinationStageId: command.destinationStageId } : {}),
       amountMinor: tripQuote?.amountMinor ?? journey.fare.amountMinor,
       currency: journey.fare.currency,

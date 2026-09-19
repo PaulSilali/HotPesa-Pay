@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import type { PaymentState, RouteDirectionV1, RouteStageV1, RouteV1, TripSummaryV1, TripV1 } from '@hotpesa/contracts';
+import type { JourneySessionV1, PaymentState, RouteDirectionV1, RouteStageV1, RouteV1, TripSummaryV1, TripV1 } from '@hotpesa/contracts';
 import { randomUUID } from 'node:crypto';
 import { PaymentStore } from '../payments/payment.store.js';
 import { WorkforceAuthorizationService } from '../authorization/workforce.service.js';
@@ -44,6 +44,7 @@ const demoRoute: RouteV1 = {
 @Injectable()
 export class JourneyService {
   private readonly trips = new Map<string, TripV1>();
+  private readonly sessions = new Map<string, { readonly id: string; readonly publicCode: string; readonly tripId: string; readonly tenantId: string; state: 'active' | 'closed'; readonly createdAt: string; closedAt?: string }>();
 
   constructor(@Inject(PaymentStore) private readonly payments: PaymentStore = new PaymentStore(), @Inject(WorkforceAuthorizationService) private readonly authorization: WorkforceAuthorizationService = new WorkforceAuthorizationService()) {}
 
@@ -52,7 +53,31 @@ export class JourneyService {
   }
 
   routeForPublicCode(publicCode: string): RouteV1 | undefined {
-    return publicCode === 'demo-nairobi-cbd-westlands' ? demoRoute : undefined;
+    return this.journeySessionForPublicCode(publicCode)?.route ?? (publicCode === 'demo-nairobi-cbd-westlands' ? demoRoute : undefined);
+  }
+
+  journeySessionForPublicCode(publicCode: string): JourneySessionV1 | undefined {
+    if (!/^[a-z0-9_-]{16,128}$/i.test(publicCode)) return undefined;
+    const session = [...this.sessions.values()].find((item) => item.publicCode === publicCode && item.state === 'active');
+    return session ? this.publicSession(session) : undefined;
+  }
+
+  journeySessionById(id: string): JourneySessionV1 | undefined {
+    const session = [...this.sessions.values()].find((item) => item.id === id && item.state === 'active');
+    return session ? this.publicSession(session) : undefined;
+  }
+
+  private publicSession(session: { readonly id: string; readonly publicCode: string; readonly tripId: string; readonly tenantId: string; state: 'active' | 'closed'; readonly createdAt: string; closedAt?: string }): JourneySessionV1 | undefined {
+    if (!session) return undefined;
+    const trip = this.trips.get(session.tripId);
+    if (!trip || trip.state !== 'active') return undefined;
+    const route = this.getRoute(trip.routeId, trip.tenantId);
+    return { id: session.id, publicCode: session.publicCode, routeLabel: route.label, vehicleLabel: trip.vehicleId, saccoLabel: trip.tenantId, fare: { amountMinor: 0, currency: 'KES', fareVersionId: trip.fareVersionId, effectiveFrom: trip.startedAt }, route };
+  }
+
+  tripForActiveSession(sessionId: string): TripV1 | undefined {
+    const session = [...this.sessions.values()].find((item) => item.id === sessionId && item.state === 'active');
+    return session ? this.trips.get(session.tripId) : undefined;
   }
 
   getRoute(routeId: string, tenantId: string): RouteV1 {
@@ -89,6 +114,7 @@ export class JourneyService {
     const summary = summarize(payments.map((payment) => payment.status), payments.map((payment) => payment.amountMinor));
     const closed: TripV1 = { ...current, state: 'closed', closedAt: now.toISOString(), summary };
     this.trips.set(closed.id, closed);
+    for (const session of this.sessions.values()) if (session.tripId === closed.id && session.state === 'active') { session.state = 'closed'; session.closedAt = closed.closedAt; }
     return closed;
   }
 
@@ -123,7 +149,10 @@ export class JourneyService {
       startedAt,
     };
     this.trips.set(trip.id, trip);
-    return trip;
+    const publicCode = `journey_${randomUUID().replaceAll('-', '')}`;
+    this.sessions.set(publicCode, { id: randomUUID(), publicCode, tripId: trip.id, tenantId: trip.tenantId, state: 'active', createdAt: startedAt });
+    this.trips.set(trip.id, { ...trip, publicCode });
+    return this.trips.get(trip.id)!;
   }
 
 }

@@ -46,7 +46,7 @@ export class JourneysController {
 
   @Get(':publicCode')
   get(@Param('publicCode') publicCode: string): JourneySessionV1 {
-    const journey = this.store.journeyByPublicCode(publicCode);
+    const journey = this.journeys.journeySessionForPublicCode(publicCode) ?? this.store.journeyByPublicCode(publicCode);
     if (!journey) throw new NotFoundException('Journey session not found');
     return { ...journey, route: this.journeys.routeForPublicCode(publicCode) };
   }
