@@ -104,3 +104,9 @@ Still pending or blocked:
 - Formal PostgreSQL migrations are implemented in `services/api/src/persistence/migrations.ts` with repeat-safe versions `001_payment_store_baseline` and `002_trip_payment_context`.
 - Workforce authorization validates active development identity, tenant membership, conductor role, exact vehicle/route/direction assignment and validity window before trip start. This is a local synthetic fixture, not production OIDC acceptance.
 - Current API verification: typecheck PASS, lint PASS, 33 tests PASS including live migration repeatability and PostgreSQL restart durability; containers were stopped without removing the persistent volume.
+
+## Phase 1 Sprint 3 local transport evidence (2026-09-19)
+
+- The API and passenger PWA now default to loopback and require explicit `HOST=0.0.0.0` / `VITE_HOST=0.0.0.0` opt-in for trusted-LAN development; no device IP or hotspot gateway is hard-coded.
+- Passenger entry remains the approved scoped QR/short-address route. Local access is separate from provider connectivity and never establishes payment confirmation.
+- API and PWA typechecks, PWA build and local API regression tests passed. A physical Android two-device hotspot test has not been executed; the evidence procedure is in `docs/phase-1/HOTSPOT_PHYSICAL_TEST_PLAN.md`.

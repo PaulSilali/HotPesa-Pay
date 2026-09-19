@@ -64,3 +64,10 @@ until the formal DOCX publication process runs.
 | Outcome | Requirements | ADRs | Implementation evidence | Test evidence | State |
 | --- | --- | --- | --- | --- | --- |
 | Formal migrations and workforce assignment authorization | FR-JRN-001/003; FR-ADM-003; SEC-IAM-*; SEC-AUTHZ-001; SEC-DEV-001; US-CON-001; US-OPS-002 | ADR-017; TRD AP-006; ADR-001/002/006 | `services/api/src/persistence/migrations.ts`; `services/api/src/modules/authorization/workforce.service.ts`; `journey.service.ts` | `migrations.test.ts`; `workforce.authorization.test.ts`; journey and HTTP regression suites | Implemented and tested locally with deterministic synthetic fixtures; production IdP, tenant governance and controlled publication remain pending |
+
+## Phase 1 Sprint 3 transport evidence
+
+| Outcome | Requirements | Implementation evidence | Test / manual evidence | State |
+| --- | --- | --- | --- | --- |
+| Explicit trusted-LAN development binding | BR-JRN-001; PR-PAX-001; PR-JRN-003; FR-PAX-001; FR-JRN-004; FR-OFF-002 | API `HOST` and `CORS_ORIGINS`; PWA `VITE_HOST` configuration | API and PWA typechecks/build pass; physical test plan prepared | Implemented locally; physical Android/hotspot proof not executed |
+| Scoped passenger entry and payment truth boundary | FR-PAX-001/011; FR-OFF-002/003; US-PAX-001/013 | Existing PWA `/journey/<public-code>` flow and server-authoritative payment API | Existing API/payment tests pass | Existing bounded implementation; active-session lifecycle and physical transport proof remain pending |
