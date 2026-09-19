@@ -21,6 +21,13 @@ responsible authority; no row is marked accepted because that evidence is absent
 | Workforce identity and tenant authorization | BR-GOV-003; PR-SEC-001–002 | FR-AUTH-001–012; FR-ADM-001–009 | US-ADM-001–006; UC-ADM-001 | SEC-IAM-001–012; PRIV-MIN-001–004 | ADR-010 (Recommended); ADR-017 (Decision required) | No production-like identity integration | No identity/tenant-isolation acceptance evidence | Not started; decision required |
 | Production provider and hosting | BR-PIL-001–006; PR-OPS-003 | Provider-specific details remain gated | Applicable production use cases deferred | SEC-PAY-001–009; NFR-DR-001–003; PRIV-XFER-001–004 | ADR-017 and ADR-018 (Decision required) | None; Mock adapter only | No Daraja/live/provider/region evidence | Deferred and blocked by external decisions |
 
+## Phase 1 implementation evidence
+
+| Outcome | Requirements | ADRs | Implementation evidence | Test evidence | State |
+| --- | --- | --- | --- | --- | --- |
+| Assigned trip route/stage foundation | FR-JRN-001/003; FR-ADM-003; FR-PAX-005; US-CON-001; US-OPS-001/002 | ADR-001; ADR-002; ADR-006 | `services/api/src/modules/journeys/journey.service.ts`; `packages/contracts/src/index.ts` | `journey.service.test.ts`; `http.integration.test.ts` | Implemented and tested locally with synthetic assignment; controlled publication pending |
+| Server-side destination fare quote | FR-FAR-001/002/006/007/009; FR-PAX-005/006; US-PAX-003/004; US-FAR-003/004 | ADR-009 | `services/api/src/modules/fares/fare.service.ts`; `fares.controller.ts`; versioned contracts | `fare.service.test.ts`; `http.integration.test.ts` | Implemented and tested locally with synthetic route/fare data; controlled publication pending |
+
 ## Controlled conflict
 
 Document 05 TRD section 26 assigns ADR-001 through ADR-012 to a different set of

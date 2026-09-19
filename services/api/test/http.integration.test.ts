@@ -27,6 +27,34 @@ describe('Phase 0 HTTP integration', () => {
     expect(body.fare).toEqual(expect.objectContaining({ amountMinor: 8_000, fareVersionId: 'fare-demo-v1' }));
   });
 
+  it('starts an assigned trip and calculates a server-side destination fare', async () => {
+    const tripResponse = await fetch(`${baseUrl}/api/v1/journey-sessions/trips`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': 'tenant-demo-sacco' },
+      body: JSON.stringify({
+        conductorId: 'conductor-demo',
+        vehicleId: 'vehicle-demo-kaa-000d',
+        routeId: 'route-cbd-westlands',
+        directionId: 'direction-cbd-westlands',
+      }),
+    });
+    const trip = (await tripResponse.json()) as { id: string; state: string };
+
+    expect(tripResponse.status).toBe(201);
+    expect(trip.state).toBe('active');
+
+    const quoteResponse = await fetch(`${baseUrl}/api/v1/trips/${trip.id}/fare-quotes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destinationStageId: 'stage-westlands', amountMinor: 1 }),
+    });
+    await expect(quoteResponse.json()).resolves.toMatchObject({
+      amountMinor: 8_000,
+      destinationStageId: 'stage-westlands',
+      fareVersionId: 'fare-demo-v1',
+    });
+  });
+
   it('initiates, confirms from an internal mock callback, and returns a redacted view', async () => {
     const fullPhone = '+254700000009';
     const response = await fetch(`${baseUrl}/api/v1/payments`, {

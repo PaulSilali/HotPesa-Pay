@@ -27,6 +27,45 @@ export interface FareQuoteV1 {
   readonly currency: 'KES';
   readonly fareVersionId: string;
   readonly effectiveFrom: string;
+  readonly routeId?: string;
+  readonly directionId?: string;
+  readonly destinationStageId?: string;
+}
+
+export interface RouteStageV1 {
+  readonly id: string;
+  readonly name: string;
+  readonly sequence: number;
+}
+
+export interface RouteDirectionV1 {
+  readonly id: string;
+  readonly label: string;
+  readonly stages: readonly RouteStageV1[];
+}
+
+export interface RouteV1 {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly code: string;
+  readonly label: string;
+  readonly directions: readonly RouteDirectionV1[];
+}
+
+export type TripStateV1 = 'active' | 'closed' | 'suspended';
+
+export interface TripV1 {
+  readonly id: string;
+  readonly publicCode: string;
+  readonly tenantId: string;
+  readonly conductorId: string;
+  readonly vehicleId: string;
+  readonly routeId: string;
+  readonly directionId: string;
+  readonly fareVersionId: string;
+  readonly state: TripStateV1;
+  readonly startedAt: string;
+  readonly closedAt?: string;
 }
 
 export interface JourneySessionV1 {
@@ -36,6 +75,7 @@ export interface JourneySessionV1 {
   readonly vehicleLabel: string;
   readonly saccoLabel: string;
   readonly fare: FareQuoteV1;
+  readonly route?: RouteV1;
 }
 
 export interface InitiatePaymentV1 {

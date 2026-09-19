@@ -1,8 +1,8 @@
-# Proposed Trip and Fare Domain Contract
+# Phase 1 Trip and Fare Domain Contract
 
-This is an analysis artifact, not an approved API or database contract. It uses only
-entities and relationships named by the controlled requirements. Fields marked **OPEN**
-must be decided before implementation.
+This is the approved bounded Phase 1 implementation contract. It uses only entities and
+relationships named by the controlled requirements. It is not a production identity or
+provider contract.
 
 ## Minimum entities
 
@@ -14,8 +14,8 @@ must be decided before implementation.
 | Route | Approved path and operator context. | Tenant/operator administration. | routeId, route code/label. | Has directions and ordered stages. | Configured/versioned concept implied. | Direction identifier and route publication lifecycle. |
 | RouteStage | Ordered boarding/destination point. | Tenant/operator administration. | stageId, routeId, directionId, sequence. | Belongs to one route direction. | Ordered; historical preservation required. | Whether stages can be renamed/reordered and identifier retention. |
 | FareDefinition/FareVersion | Approved amount for route/direction/stage context and effective period. | Tenant/operator governance, with HotPesa audit. | fareDefinitionId, fareVersionId, routeId, directionId, stage/destination context. | References route/direction/stages; linked to quotes and attempts. | draft, pending-approval, active, superseded, withdrawn are established for fare versions. | Creator/approver roles, overlap policy, timezone and publication mechanics. |
-| ConductorAssignment | Authorizes workforce member to operate a vehicle/route context. | Tenant/operator operations. | assignmentId, tenantId, workforceId, vehicleId, routeId, directionId. | Links workforce, vehicle, route and temporal operating context. | Active/expired/revoked is implied; exact lifecycle OPEN. | Shift/session identifier, cardinality and overlap rules. |
-| Trip/Journey | Active or closed vehicle-route operation exposed to passengers. | HotPesa journey domain under tenant authority. | tripId/journeyId, public token/code. | References tenant, assignment, vehicle, route, direction and fare context. | active, closed, suspended are established; start/closing semantics require detail. | Exact state machine, start actor, fare snapshot rule and closure override. |
+| ConductorAssignment | Authorizes workforce member to operate a vehicle/route context. | Tenant/operator operations. | assignmentId, tenantId, workforceId, vehicleId, routeId, directionId. | Links workforce, vehicle, route and temporal operating context. | Active/expired/revoked. | No separate shift entity in this slice; at most one active assignment per conductor and vehicle. |
+| Trip/Journey | Active or closed vehicle-route operation exposed to passengers. | HotPesa journey domain under tenant authority. | tripId/journeyId, public token/code. | References tenant, assignment, vehicle, route, direction and fare context. | active, closed, suspended. | Closure and override rules are recorded in the approved decisions package. |
 | Payment attempt | Immutable fare attempt linked to the trip context. | HotPesa payment domain/PostgreSQL. | paymentAttemptId, tripId, fareVersionId, provider/reference IDs. | References trip, quote, amount, currency and masked payer reference. | Phase 0 seven payment states. | Trip-close linkage and summary inclusion rules. |
 | TripSummary | State-separated closure/report result. | HotPesa reporting/reconciliation domain. | summaryId, tripId, generatedAt. | References payment attempts and audit events. | Retained immutable closure result is implied. | Exact fields and treatment of unresolved/non-digital values. |
 
@@ -34,6 +34,10 @@ tenant. The assignment must be valid at the requested start time. The following 
 - whether a trip captures one fare version at start or obtains effective quotes per passenger;
 - how an expired or revoked assignment is presented and audited.
 
+Phase 1 uses a bounded assignment period, rejects overlapping active conductor/vehicle
+assignments, assigns creation and revocation to SACCO Operations, and captures fare context
+at trip start.
+
 ## Fare contract constraints already established
 
 - Amount is server-generated, positive, currency-supported and attributable.
@@ -42,4 +46,5 @@ tenant. The assignment must be valid at the requested start time. The following 
 - Payment attempts retain amount, currency and fare version even after later changes.
 - Passenger and conductor clients cannot override the authoritative quote.
 
-The contract does not choose creator, approver, overlap, timezone or trip-snapshot policy.
+Phase 1 uses SACCO Operations as creator, a separate approver for activation,
+`Africa/Nairobi` half-open effective intervals, and a trip-start fare snapshot.
