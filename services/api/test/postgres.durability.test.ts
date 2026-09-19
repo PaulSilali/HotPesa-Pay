@@ -4,6 +4,8 @@ import { AuditService } from '../src/modules/audit/audit.service.js';
 import { MockMpesaProvider } from '../src/modules/payments/mock-mpesa.provider.js';
 import { PaymentStore } from '../src/modules/payments/payment.store.js';
 import { PaymentsService } from '../src/modules/payments/payments.service.js';
+import { FareService } from '../src/modules/fares/fare.service.js';
+import { JourneyService } from '../src/modules/journeys/journey.service.js';
 
 const databaseUrl = process.env.HOTPESA_POSTGRES_TEST_URL;
 const describeWithPostgres = databaseUrl ? describe : describe.skip;
@@ -35,10 +37,15 @@ describeWithPostgres('PostgreSQL payment durability', () => {
     firstStore = initialStore;
     await initialStore.onModuleInit();
     const firstAudit = new AuditService(initialStore);
-    const firstService = new PaymentsService(initialStore, new MockMpesaProvider(), firstAudit);
+    const journeyService = new JourneyService(initialStore);
+    const trip = journeyService.startTrip({
+      tenantId: 'tenant-demo-sacco', conductorId: 'conductor-demo', vehicleId: 'vehicle-demo-kaa-000d',
+      routeId: 'route-cbd-westlands', directionId: 'direction-cbd-westlands',
+    }, new Date('2026-09-19T12:00:00.000Z'));
+    const firstService = new PaymentsService(initialStore, new MockMpesaProvider(), firstAudit, new FareService(journeyService));
     const command = {
       journeySessionId: 'journey-session-demo',
-      tripId: 'trip-postgres-durability',
+      tripId: trip.id,
       destinationStageId: 'stage-westlands',
       phoneNumber: fullPhone,
       scenario: 'duplicate-callback' as const,
@@ -47,7 +54,7 @@ describeWithPostgres('PostgreSQL payment durability', () => {
     const pending = await firstService.initiate(command, idempotencyKey);
     const confirmed = await firstService.deliverCallbacks(pending.id);
     paymentId = confirmed.id;
-    expect(confirmed.tripId).toBe('trip-postgres-durability');
+    expect(confirmed.tripId).toBe(trip.id);
     expect(confirmed.destinationStageId).toBe('stage-westlands');
     expect(confirmed).toMatchObject({ status: 'confirmed', maskedPhoneNumber: '+254•••••555' });
     expect(firstAudit.list().some((event) => event.type === 'payment.provider-evidence-duplicate')).toBe(true);
@@ -65,6 +72,7 @@ describeWithPostgres('PostgreSQL payment durability', () => {
         restartedStore,
         new MockMpesaProvider(),
         restartedAudit,
+        new FareService(journeyService),
       );
 
       expect(restartedService.get(paymentId)).toMatchObject({
@@ -74,7 +82,7 @@ describeWithPostgres('PostgreSQL payment durability', () => {
       });
       await expect(restartedService.initiate(command, idempotencyKey)).resolves.toMatchObject({
         id: paymentId,
-        tripId: 'trip-postgres-durability',
+        tripId: trip.id,
         destinationStageId: 'stage-westlands',
       });
       await expect(

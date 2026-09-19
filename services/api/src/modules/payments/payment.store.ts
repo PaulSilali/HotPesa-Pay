@@ -84,7 +84,7 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
         id, journey_session_id, trip_id, destination_stage_id, amount_minor, currency, fare_version_id, status, scenario,
         masked_phone_number, idempotency_key, request_fingerprint, provider_request_id,
         created_at, updated_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
       ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status,
         provider_request_id = EXCLUDED.provider_request_id, updated_at = EXCLUDED.updated_at`,
       [
