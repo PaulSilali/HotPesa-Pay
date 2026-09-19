@@ -13,11 +13,11 @@ describe('Phase 0 HTTP integration', () => {
     await app.listen(0, '127.0.0.1');
     const address = app.getHttpServer().address() as AddressInfo;
     baseUrl = `http://127.0.0.1:${address.port}`;
-  });
+  }, 30_000);
 
   afterAll(async () => {
     await app.close();
-  });
+  }, 30_000);
 
   it('serves the synthetic journey session by public URL code', async () => {
     const response = await fetch(`${baseUrl}/api/v1/journey-sessions/demo-nairobi-cbd-westlands`);

@@ -22,6 +22,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Verify controlled documentation synchronization
+        run: pnpm verify:docs
       - name: Require workspace projects and unit tests
         run: pnpm verify:discovery
       - run: pnpm verify

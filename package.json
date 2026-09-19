@@ -14,6 +14,7 @@
     "typecheck": "pnpm -r typecheck",
     "verify:e2e-discovery": "node scripts/verify-e2e-discovery.mjs",
     "verify:discovery": "node scripts/verify-discovery.mjs",
+    "verify:docs": "node scripts/verify-docs.mjs",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
