@@ -179,6 +179,13 @@ export class PaymentsService {
       previousStatus: transition.previous,
       currentStatus: transition.current,
     });
+    if (transition.previous === 'review-required' && transition.changed) {
+      this.audit.record('payment.late-provider-evidence-applied', payment.id, {
+        providerEventId: evidence.eventId,
+        outcome: evidence.outcome,
+        currentStatus: transition.current,
+      });
+    }
     if (transition.requiresReview) {
       this.audit.record('payment.review-required', payment.id, {
         providerEventId: evidence.eventId,

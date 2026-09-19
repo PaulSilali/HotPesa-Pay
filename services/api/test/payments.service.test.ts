@@ -132,6 +132,18 @@ describe('PaymentsService', () => {
     await expect(service.expire(pending.id)).resolves.toMatchObject({ status: 'confirmed' });
   });
 
+  it('applies late trusted evidence after review-required exactly once', async () => {
+    const pending = await service.initiate(
+      { journeySessionId: 'journey-session-demo', phoneNumber: '+254733333335', scenario: 'missing-callback' },
+      'idem-late-evidence-001',
+    );
+    await service.createConflict(pending.id);
+    const reviewed = await service.createConflict(pending.id);
+    expect(reviewed.status).toBe('review-required');
+    await expect(service.reconcile(pending.id)).resolves.toMatchObject({ status: 'confirmed' });
+    expect(audit.list().some((event) => event.type === 'payment.late-provider-evidence-applied')).toBe(true);
+  });
+
   it('never includes a full phone number in stored views or audit events', async () => {
     const fullPhone = '+254744444444';
     const payment = await service.initiate(
