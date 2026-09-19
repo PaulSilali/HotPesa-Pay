@@ -1,31 +1,24 @@
 # Phase 1 Implementation Readiness
 
-Overall status: **BLOCKED pending human decisions**. This is a readiness assessment, not
-approval to implement or a claim of Phase 1 completion.
+Overall status: **APPROVED FOR BOUNDED PHASE 1 IMPLEMENTATION — CONTROLLED SYNC PENDING**.
+This is not a claim of Phase 1 completion or production readiness.
 
 | Area | Status | Exact blocker |
 | --- | --- | --- |
-| Authentication | BLOCKED | ADR-017 leaves the managed OIDC provider, provisioning/login mechanism, subject-to-tenant mapping, claims and device/session constraints open. |
-| Conductor assignment | BLOCKED | Assignment cardinality, temporal/shift model, creator/modifier authority and revocation behavior are not specified. |
-| Route/stage contract | BLOCKED | Route/direction/stage concepts are established, but canonical identifiers, publication/version lifecycle and stage mutation rules are not contractually defined. |
-| Fare contract | BLOCKED | Fare version fields are established, but creator/approver identity, date boundaries/timezone and overlap mechanics remain open. |
-| Fare governance | BLOCKED | FR-FAR-004/005 require approval and audit, while exact approver/publisher and creator/approver separation remain undecided. |
-| Trip start | BLOCKED | Requires authenticated assigned conductor, same-tenant vehicle/route/direction and valid operating context; the authorization and assignment contract is not approved. |
+| Authentication | READY with controlled-sync gate | Provider-neutral managed OIDC boundary, application tenant mapping and device enrollment are approved; named vendor remains external. |
+| Conductor assignment | READY with controlled-sync gate | One active assignment per conductor/vehicle, no overlap, SACCO Operations authority and revocation behavior approved. |
+| Route/stage contract | READY with controlled-sync gate | Existing route/direction/ordered-stage concepts may be implemented; identifiers and lifecycle must follow the domain contract. |
+| Fare contract | READY with controlled-sync gate | Africa/Nairobi half-open dates, strict context no-overlap and trip-start fare binding approved. |
+| Fare governance | READY with controlled-sync gate | SACCO Operations creates; separate approver activates; audit and reason required. |
+| Trip start | READY with controlled-sync gate | Authenticated assigned conductor and same-tenant operating context are required. |
 | Payment association | READY for a bounded extension | Phase 0 already links payment attempts to journey, amount, currency and fare version and has trusted-evidence/idempotency behavior. Trip ID and destination/stage linkage still require the trip/fare contract. |
-| Trip closure | BLOCKED | FR-JRN-009/010 require authorized closure, unresolved-attempt handling and audit, but closer, override, exception-reason and close-state rules are open. |
-| Trip summary | BLOCKED | State separation and confirmed-only revenue are established, but exact summary fields and cash/refund/reversal treatment are not approved. |
+| Trip closure | READY with controlled-sync gate | Conductor closes; SACCO Operations may override; unresolved close requires reason and preserves late evidence. |
+| Trip summary | READY with controlled-sync gate | State counts, confirmed amount, payment-attempt count and exception count; cash/refund/reversal excluded. |
 
-## Exact questions requiring human answers
+## Approval record
 
-1. Which managed OIDC provider, login/provisioning workflow and device/session constraints are approved for the pilot?
-2. What tenant identifier and workforce subject mapping does HotPesa own?
-3. What roles may create, modify, revoke and override conductor assignments, and may assignments overlap?
-4. Who creates, approves and activates fares? Must creator and approver be different people, and when?
-5. What timezone and boundary rules govern effective dates and overlap prevention?
-6. Does an active trip capture one approved fare version at start, or does each passenger quote use the effective fare for its context?
-7. Who normally closes a trip, who may override closure, and what reason is mandatory?
-8. May a trip close with pending or review-required attempts? If yes, which exception evidence is required?
-9. Which summary fields are required: state counts, confirmed amount, passenger count, payment count and exception count? Confirm that cash, refund and reversal fields remain excluded or define their approved representation.
+The project owner approved all nine Phase 1 implementation decisions. The exact approved
+wording is recorded in `PHASE_1_APPROVED_DECISIONS.md`.
 
 ## Proposed synchronization changes after answers
 
