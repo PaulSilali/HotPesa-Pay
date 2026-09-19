@@ -38,6 +38,8 @@ describeWithPostgres('PostgreSQL payment durability', () => {
     const firstService = new PaymentsService(initialStore, new MockMpesaProvider(), firstAudit);
     const command = {
       journeySessionId: 'journey-session-demo',
+      tripId: 'trip-postgres-durability',
+      destinationStageId: 'stage-westlands',
       phoneNumber: fullPhone,
       scenario: 'duplicate-callback' as const,
     };
@@ -45,6 +47,8 @@ describeWithPostgres('PostgreSQL payment durability', () => {
     const pending = await firstService.initiate(command, idempotencyKey);
     const confirmed = await firstService.deliverCallbacks(pending.id);
     paymentId = confirmed.id;
+    expect(confirmed.tripId).toBe('trip-postgres-durability');
+    expect(confirmed.destinationStageId).toBe('stage-westlands');
     expect(confirmed).toMatchObject({ status: 'confirmed', maskedPhoneNumber: '+254•••••555' });
     expect(firstAudit.list().some((event) => event.type === 'payment.provider-evidence-duplicate')).toBe(true);
     expect(JSON.stringify(firstService.list())).not.toContain(fullPhone);
@@ -70,6 +74,8 @@ describeWithPostgres('PostgreSQL payment durability', () => {
       });
       await expect(restartedService.initiate(command, idempotencyKey)).resolves.toMatchObject({
         id: paymentId,
+        tripId: 'trip-postgres-durability',
+        destinationStageId: 'stage-westlands',
       });
       await expect(
         restartedService.initiate({ ...command, scenario: 'failed' }, idempotencyKey),

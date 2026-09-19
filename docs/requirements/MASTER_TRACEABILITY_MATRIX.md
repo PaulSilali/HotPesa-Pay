@@ -27,6 +27,7 @@ responsible authority; no row is marked accepted because that evidence is absent
 | --- | --- | --- | --- | --- | --- |
 | Assigned trip route/stage foundation | FR-JRN-001/003; FR-ADM-003; FR-PAX-005; US-CON-001; US-OPS-001/002 | ADR-001; ADR-002; ADR-006 | `services/api/src/modules/journeys/journey.service.ts`; `packages/contracts/src/index.ts` | `journey.service.test.ts`; `http.integration.test.ts` | Implemented and tested locally with synthetic assignment; controlled publication pending |
 | Server-side destination fare quote | FR-FAR-001/002/006/007/009; FR-PAX-005/006; US-PAX-003/004; US-FAR-003/004 | ADR-009 | `services/api/src/modules/fares/fare.service.ts`; `fares.controller.ts`; versioned contracts | `fare.service.test.ts`; `http.integration.test.ts` | Implemented and tested locally with synthetic route/fare data; controlled publication pending |
+| Trip-linked payment and closure summary | FR-PAY-001/006/009; FR-JRN-009/010; FR-RPT-001/002; US-CON-004/008; US-FIN-005 | ADR-005; ADR-009; ADR-015 | `payments.service.ts`; `payment.store.ts`; `journey.service.ts`; trip payment/closure controllers | `http.integration.test.ts`; existing payment idempotency and callback tests | Implemented and tested locally; PostgreSQL restart coverage for trip metadata and close summary remains to be added |
 
 ## Controlled conflict
 
