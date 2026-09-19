@@ -149,6 +149,16 @@ export class PaymentsService {
     return this.publicPayment(payment);
   }
 
+  async exhaustReconciliation(id: string): Promise<PaymentAttemptV1> {
+    const current = this.requiredPayment(id);
+    if (current.status !== 'pending') return this.publicPayment(current);
+    const payment = this.move(current, 'review-required');
+    this.audit.record('payment.reconciliation-exhausted', payment.id, { previousStatus: current.status });
+    this.audit.record('payment.review-required', payment.id, { reason: 'reconciliation-exhausted' });
+    await this.store.flush();
+    return this.publicPayment(payment);
+  }
+
   async createConflict(id: string): Promise<PaymentAttemptV1> {
     let payment = this.requiredPayment(id);
     if (!payment.providerRequestId) throw new ConflictException('Provider request is unavailable');

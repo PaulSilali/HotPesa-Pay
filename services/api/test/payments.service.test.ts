@@ -144,6 +144,12 @@ describe('PaymentsService', () => {
     expect(audit.list().some((event) => event.type === 'payment.late-provider-evidence-applied')).toBe(true);
   });
 
+  it('moves an unresolved pending payment to review-required on reconciliation exhaustion', async () => {
+    const pending = await service.initiate({ journeySessionId: 'journey-session-demo', phoneNumber: '+254733333336', scenario: 'missing-callback' }, 'idem-exhaustion-001');
+    await expect(service.exhaustReconciliation(pending.id)).resolves.toMatchObject({ status: 'review-required' });
+    expect(audit.list().some((event) => event.type === 'payment.reconciliation-exhausted')).toBe(true);
+  });
+
   it('never includes a full phone number in stored views or audit events', async () => {
     const fullPhone = '+254744444444';
     const payment = await service.initiate(
