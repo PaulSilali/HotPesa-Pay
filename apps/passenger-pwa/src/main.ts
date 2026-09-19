@@ -1,6 +1,6 @@
 import '../../../packages/design-tokens/src/theme.css';
 import './passenger.css';
-import type { FareQuoteV1, JourneySessionV1, MockPaymentScenario, PaymentAttemptV1 } from '@hotpesa/contracts';
+import type { JourneySessionV1, MockPaymentScenario, PaymentAttemptV1 } from '@hotpesa/contracts';
 import { ApiError, HotPesaApi } from './api.js';
 import { paymentStatusView } from './payment-status.js';
 import { sessionCodeFromLocation } from './session-code.js';

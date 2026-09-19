@@ -21,13 +21,13 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
-      command: 'pnpm --filter @hotpesa/passenger-pwa exec vite --host 127.0.0.1 --port 4173',
-      url: 'http://127.0.0.1:4173/journey/demo-nairobi-cbd-westlands',
+      command: 'pnpm --filter @hotpesa/passenger-pwa exec vite --host 127.0.0.1 --port 4173 --strictPort',
+      url: 'http://127.0.0.1:4173/',
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,
     },
     {
-      command: 'pnpm --filter @hotpesa/admin-web exec vite --host 127.0.0.1 --port 4174',
+      command: 'pnpm --filter @hotpesa/admin-web exec vite --host 127.0.0.1 --port 4174 --strictPort',
       url: 'http://127.0.0.1:4174',
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,
