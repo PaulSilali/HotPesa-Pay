@@ -28,6 +28,20 @@ decisions than Document 11. ADR references in this matrix use Document 11 and re
 statuses. The Architecture Review Board must resolve the numbering conflict before the
 controlled drafts can be approved.
 
+## Phase 1 decision synchronization
+
+The project owner approved the nine Phase 1 implementation decisions recorded in
+`docs/phase-1/PHASE_1_APPROVED_DECISIONS.md`. These are implementation authority for the
+bounded Phase 1 slice, but the checksum-bound controlled Markdown copies remain unchanged
+until the formal DOCX publication process runs.
+
+| Decision scope | Requirements | Governing ADRs | Decision evidence | State |
+| --- | --- | --- | --- | --- |
+| Workforce identity and tenant authorization | FR-JRN-001; FR-ADM-003; SEC-AUTHZ-001; SEC-IAM-*; SEC-DEV-001 | ADR-017; TRD AP-006 | `PHASE_1_APPROVED_DECISIONS.md` P1-DEC-001/002 | Approved for bounded implementation; controlled sync pending; named provider not selected |
+| Assignment and trip start | FR-JRN-001/003; FR-ADM-003; US-CON-001; US-OPS-002 | ADR-001; ADR-002; ADR-006 | `PHASE_1_APPROVED_DECISIONS.md` P1-DEC-003 | Approved for bounded implementation; controlled sync pending |
+| Fare creation, approval and effective versions | FR-FAR-001/002/004/005/006–008; US-FAR-001–004; PR-FAR-003 | ADR-009 | `PHASE_1_APPROVED_DECISIONS.md` P1-DEC-004/005/006 | Approved for bounded implementation; controlled sync pending |
+| Trip closure and summary | FR-JRN-009/010; FR-RPT-001/002; US-CON-008/009; US-FIN-005; US-RPT-001 | ADR-005; ADR-009 | `PHASE_1_APPROVED_DECISIONS.md` P1-DEC-007/008/009 | Approved for bounded implementation; controlled sync pending |
+
 ## State vocabulary
 
 - **Implemented:** code or configuration exists.

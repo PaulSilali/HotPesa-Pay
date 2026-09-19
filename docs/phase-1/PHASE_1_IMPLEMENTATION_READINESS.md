@@ -5,15 +5,15 @@ This is not a claim of Phase 1 completion or production readiness.
 
 | Area | Status | Exact blocker |
 | --- | --- | --- |
-| Authentication | READY with controlled-sync gate | Provider-neutral managed OIDC boundary, application tenant mapping and device enrollment are approved; named vendor remains external. |
-| Conductor assignment | READY with controlled-sync gate | One active assignment per conductor/vehicle, no overlap, SACCO Operations authority and revocation behavior approved. |
-| Route/stage contract | READY with controlled-sync gate | Existing route/direction/ordered-stage concepts may be implemented; identifiers and lifecycle must follow the domain contract. |
-| Fare contract | READY with controlled-sync gate | Africa/Nairobi half-open dates, strict context no-overlap and trip-start fare binding approved. |
-| Fare governance | READY with controlled-sync gate | SACCO Operations creates; separate approver activates; audit and reason required. |
-| Trip start | READY with controlled-sync gate | Authenticated assigned conductor and same-tenant operating context are required. |
-| Payment association | READY for a bounded extension | Phase 0 already links payment attempts to journey, amount, currency and fare version and has trusted-evidence/idempotency behavior. Trip ID and destination/stage linkage still require the trip/fare contract. |
-| Trip closure | READY with controlled-sync gate | Conductor closes; SACCO Operations may override; unresolved close requires reason and preserves late evidence. |
-| Trip summary | READY with controlled-sync gate | State counts, confirmed amount, payment-attempt count and exception count; cash/refund/reversal excluded. |
+| Authentication | READY | Provider-neutral managed OIDC boundary, application tenant mapping and device enrollment are approved; named vendor remains external. |
+| Conductor assignment | READY | One active assignment per conductor/vehicle, no overlap, SACCO Operations authority and revocation behavior approved. |
+| Route/stage contract | READY | Existing route/direction/ordered-stage concepts may be implemented; identifiers and lifecycle must follow the domain contract. |
+| Fare contract | READY | Africa/Nairobi half-open dates, strict context no-overlap and trip-start fare binding approved. |
+| Fare governance | READY | SACCO Operations creates; separate approver activates; audit and reason required. |
+| Trip start | READY | Authenticated assigned conductor and same-tenant operating context are required. |
+| Payment association | READY | Phase 0 already links payment attempts to journey, amount, currency and fare version and has trusted-evidence/idempotency behavior. Trip ID and destination/stage linkage follow the approved domain contract. |
+| Trip closure | READY | Conductor closes; SACCO Operations may override; unresolved close requires reason and preserves late evidence. |
+| Trip summary | READY | State counts, confirmed amount, payment-attempt count and exception count; cash/refund/reversal excluded. |
 
 ## Approval record
 
