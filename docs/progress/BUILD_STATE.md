@@ -13,6 +13,20 @@
 The correction commit is the repository HEAD containing this file. The parent hash above
 is deliberately labelled historical so it does not become a stale claim after commit.
 
+## Phase 1 Sprint 1 checkpoint
+
+- Current branch: `feature/phase-1-payment-vertical-slice`
+- Current implementation checkpoint: `81f7c3c3d9ac850da7d5bd190b3e97f044873b67`
+- Scope: bounded synthetic trip/route/stage/fare/payment/closure vertical slice using
+  provider-neutral development identity context and Mock M-Pesa only.
+- Implemented evidence: assignment-validated trip start, ordered route stages, server-side
+  destination fare quote, trip-linked payment attempts, trusted callback visibility and
+  confirmed-only trip summary.
+- Current tests: 29 API tests pass locally (PostgreSQL durability test passes separately
+  with live PostgreSQL); 3 Playwright journeys pass; all builds pass.
+- This is implementation evidence only. It is not Phase 1 acceptance, production
+  authentication, Android device proof or live M-Pesa evidence.
+
 ## Historical evidence inherited from the parent commit
 
 GitHub Actions run `35406346040` passed for parent commit
