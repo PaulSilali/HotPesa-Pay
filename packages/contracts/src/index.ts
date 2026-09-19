@@ -66,6 +66,18 @@ export interface TripV1 {
   readonly state: TripStateV1;
   readonly startedAt: string;
   readonly closedAt?: string;
+  readonly summary?: TripSummaryV1;
+}
+
+export interface TripSummaryV1 {
+  readonly paymentAttemptCount: number;
+  readonly confirmedPaymentCount: number;
+  readonly failedPaymentCount: number;
+  readonly pendingPaymentCount: number;
+  readonly expiredPaymentCount: number;
+  readonly reviewRequiredPaymentCount: number;
+  readonly confirmedRevenueMinor: number;
+  readonly exceptionCount: number;
 }
 
 export interface JourneySessionV1 {

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Headers, Inject, NotFoundException, Param, Post } from '@nestjs/common';
 import type { JourneySessionV1, RouteV1, TripV1 } from '@hotpesa/contracts';
-import { JourneyService, type TripStartCommand } from './journey.service.js';
+import { JourneyService, type TripCloseCommand, type TripStartCommand } from './journey.service.js';
 import { PaymentStore } from '../payments/payment.store.js';
 
 @Controller('api/v1/journey-sessions')
@@ -31,6 +31,17 @@ export class JourneysController {
   @Get('trips/:id')
   trip(@Param('id') id: string, @Headers('x-tenant-id') tenantId = 'tenant-demo-sacco'): TripV1 {
     return this.journeys.getTrip(id, tenantId);
+  }
+
+  @Post('trips/:id/close')
+  closeTrip(
+    @Param('id') tripId: string,
+    @Body() body: { readonly reason?: string },
+    @Headers('x-tenant-id') tenantId = 'tenant-demo-sacco',
+    @Headers('x-workforce-id') actorId = 'conductor-demo',
+    @Headers('x-role') role: TripCloseCommand['role'] = 'conductor',
+  ): TripV1 {
+    return this.journeys.closeTrip({ tripId, tenantId, actorId, role, reason: body.reason });
   }
 
   @Get(':publicCode')

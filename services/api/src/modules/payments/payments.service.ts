@@ -102,6 +102,12 @@ export class PaymentsService {
     return this.store.listPayments().map((payment) => this.publicPayment(payment));
   }
 
+  listForTrip(tripId: string): readonly PaymentAttemptV1[] {
+    return this.store.listPayments()
+      .filter((payment) => payment.tripId === tripId)
+      .map((payment) => this.publicPayment(payment));
+  }
+
   async deliverCallbacks(id: string): Promise<PaymentAttemptV1> {
     let payment = this.requiredPayment(id);
     if (!payment.providerRequestId) throw new ConflictException('Provider request is unavailable');

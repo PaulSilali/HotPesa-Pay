@@ -109,11 +109,28 @@ describe('Phase 0 HTTP integration', () => {
         scenario: 'confirmed',
       }),
     });
-    await expect(paymentResponse.json()).resolves.toMatchObject({
+    const payment = (await paymentResponse.json()) as { id: string };
+    expect(payment).toMatchObject({
       tripId: trip.id,
       destinationStageId: 'stage-parklands',
       amountMinor: 5_000,
       status: 'pending',
+    });
+
+    const callback = await fetch(`${baseUrl}/api/v1/mock/payments/${payment.id}/deliver-callbacks`, { method: 'POST' });
+    expect(callback.status).toBe(201);
+    const tripPayments = await fetch(`${baseUrl}/api/v1/admin/trips/${trip.id}/payments`);
+    await expect(tripPayments.json()).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: payment.id, status: 'confirmed', tripId: trip.id }),
+    ]));
+    const close = await fetch(`${baseUrl}/api/v1/journey-sessions/trips/${trip.id}/close`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Workforce-Id': 'conductor-demo', 'X-Role': 'conductor' },
+      body: JSON.stringify({}),
+    });
+    await expect(close.json()).resolves.toMatchObject({
+      state: 'closed',
+      summary: { confirmedPaymentCount: 1, confirmedRevenueMinor: 5_000, paymentAttemptCount: 1 },
     });
   });
 

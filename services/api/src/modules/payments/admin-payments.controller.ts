@@ -1,4 +1,4 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Get, Inject, Param } from '@nestjs/common';
 import type { AuditEventV1, PaymentAttemptV1 } from '@hotpesa/contracts';
 import { AuditService } from '../audit/audit.service.js';
 import { PaymentsService } from './payments.service.js';
@@ -13,6 +13,11 @@ export class AdminPaymentsController {
   @Get('payments')
   listPayments(): readonly PaymentAttemptV1[] {
     return this.payments.list();
+  }
+
+  @Get('trips/:tripId/payments')
+  listTripPayments(@Param('tripId') tripId: string): readonly PaymentAttemptV1[] {
+    return this.payments.listForTrip(tripId);
   }
 
   @Get('audit-events')
