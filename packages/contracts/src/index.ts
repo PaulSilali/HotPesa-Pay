@@ -130,6 +130,7 @@ export type AuditEventType =
   | 'payment.provider-evidence-applied'
   | 'payment.provider-evidence-duplicate'
   | 'payment.reconciliation-requested'
+  | 'payment.reconciliation-scheduled'
   | 'payment.reconciliation-exhausted'
   | 'payment.late-provider-evidence-applied'
   | 'payment.expired'

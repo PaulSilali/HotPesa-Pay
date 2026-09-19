@@ -13,6 +13,7 @@ import { PaymentStore } from './modules/payments/payment.store.js';
 import { PaymentsController } from './modules/payments/payments.controller.js';
 import { PaymentsService } from './modules/payments/payments.service.js';
 import { WorkforceAuthorizationService } from './modules/authorization/workforce.service.js';
+import { ReconciliationQueue } from './modules/payments/reconciliation.queue.js';
 
 @Module({
   controllers: [
@@ -23,6 +24,6 @@ import { WorkforceAuthorizationService } from './modules/authorization/workforce
     AdminPaymentsController,
     FaresController,
   ],
-  providers: [AppService, PaymentStore, JourneyService, FareService, MockMpesaProvider, AuditService, PaymentsService, WorkforceAuthorizationService],
+  providers: [AppService, PaymentStore, JourneyService, FareService, MockMpesaProvider, AuditService, PaymentsService, WorkforceAuthorizationService, ReconciliationQueue],
 })
 export class AppModule {}

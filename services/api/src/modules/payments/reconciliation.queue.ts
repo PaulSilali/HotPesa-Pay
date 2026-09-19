@@ -1,16 +1,23 @@
+import { Injectable, type OnApplicationShutdown } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { reconciliationPolicy } from './reconciliation-policy.js';
 
 export const reconciliationQueueName = 'payment-reconciliation';
+export interface ReconciliationJob { readonly paymentAttemptId: string; readonly attempt: number; }
 
-export interface ReconciliationJob { readonly paymentAttemptId: string; }
-
-export class ReconciliationQueue {
-  private readonly queue: Queue<ReconciliationJob>;
-  constructor(redisUrl: string) { this.queue = new Queue(reconciliationQueueName, { connection: { url: redisUrl } }); }
-  async schedule(paymentAttemptId: string): Promise<void> {
-    const policy = reconciliationPolicy();
-    await this.queue.add('reconcile', { paymentAttemptId }, { jobId: `reconcile:${paymentAttemptId}`, attempts: policy.maxAttempts, backoff: { type: 'custom' }, removeOnComplete: false, removeOnFail: false, delay: policy.delaysMs[0] });
+@Injectable()
+export class ReconciliationQueue implements OnApplicationShutdown {
+  private readonly queue?: Queue<ReconciliationJob>;
+  constructor() {
+    const redisUrl = process.env.REDIS_URL;
+    if (redisUrl) this.queue = new Queue(reconciliationQueueName, { connection: { url: redisUrl } });
   }
-  async close(): Promise<void> { await this.queue.close(); }
+  async schedule(paymentAttemptId: string, attempt = 1): Promise<boolean> {
+    if (!this.queue) return false;
+    const policy = reconciliationPolicy();
+    if (attempt > policy.maxAttempts) return false;
+    await this.queue.add('reconcile', { paymentAttemptId, attempt }, { jobId: `reconcile:${paymentAttemptId}:${attempt}`, delay: policy.delaysMs[attempt - 1], removeOnComplete: true, removeOnFail: false });
+    return true;
+  }
+  async onApplicationShutdown(): Promise<void> { await this.queue?.close(); }
 }

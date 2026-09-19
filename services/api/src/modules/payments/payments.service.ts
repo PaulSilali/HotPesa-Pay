@@ -18,6 +18,7 @@ import { JourneyService } from '../journeys/journey.service.js';
 import { MockMpesaProvider } from './mock-mpesa.provider.js';
 import { transitionPayment } from './payment-state.js';
 import { PaymentStore, type StoredPayment } from './payment.store.js';
+import { ReconciliationQueue } from './reconciliation.queue.js';
 
 const KENYAN_SANDBOX_PHONE = /^\+254(?:7|1)\d{8}$/;
 
@@ -29,6 +30,7 @@ export class PaymentsService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(FareService) private readonly fares: FareService = new FareService(new JourneyService()),
     @Inject(JourneyService) private readonly journeys: JourneyService = new JourneyService(),
+    @Inject(ReconciliationQueue) private readonly reconciliationQueue: ReconciliationQueue = new ReconciliationQueue(),
   ) {}
 
   async initiate(command: InitiatePaymentV1, idempotencyKey: string): Promise<PaymentAttemptV1> {
@@ -93,6 +95,8 @@ export class PaymentsService {
       providerRequestId: acceptance.providerRequestId,
     });
     await this.store.flush();
+    const scheduled = await this.reconciliationQueue.schedule(payment.id);
+    if (scheduled) this.audit.record('payment.reconciliation-scheduled', payment.id, { attempt: 1 });
     this.scheduleCallbacks(payment);
     return this.publicPayment(payment);
   }
