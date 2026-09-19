@@ -11,6 +11,8 @@ import { Pool } from 'pg';
 export interface StoredPayment {
   readonly id: string;
   readonly journeySessionId: string;
+  readonly tripId?: string;
+  readonly destinationStageId?: string;
   readonly amountMinor: number;
   readonly currency: 'KES';
   readonly fareVersionId: string;
@@ -79,7 +81,7 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
     this.paymentIdByIdempotencyKey.set(payment.idempotencyKey, payment.id);
     this.queue(
       `INSERT INTO payment_attempts (
-        id, journey_session_id, amount_minor, currency, fare_version_id, status, scenario,
+        id, journey_session_id, trip_id, destination_stage_id, amount_minor, currency, fare_version_id, status, scenario,
         masked_phone_number, idempotency_key, request_fingerprint, provider_request_id,
         created_at, updated_at
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
@@ -88,6 +90,8 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
       [
         payment.id,
         payment.journeySessionId,
+        payment.tripId ?? null,
+        payment.destinationStageId ?? null,
         payment.amountMinor,
         payment.currency,
         payment.fareVersionId,
@@ -147,6 +151,8 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
       CREATE TABLE IF NOT EXISTS payment_attempts (
         id text PRIMARY KEY,
         journey_session_id text NOT NULL,
+        trip_id text,
+        destination_stage_id text,
         amount_minor integer NOT NULL CHECK (amount_minor > 0),
         currency text NOT NULL CHECK (currency = 'KES'),
         fare_version_id text NOT NULL,
@@ -172,6 +178,8 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
         occurred_at timestamptz NOT NULL,
         details jsonb NOT NULL
       );
+      ALTER TABLE payment_attempts ADD COLUMN IF NOT EXISTS trip_id text;
+      ALTER TABLE payment_attempts ADD COLUMN IF NOT EXISTS destination_stage_id text;
     `);
   }
 
@@ -179,6 +187,8 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
     const paymentRows = await this.pool?.query<{
       id: string;
       journey_session_id: string;
+      trip_id: string | null;
+      destination_stage_id: string | null;
       amount_minor: number;
       currency: 'KES';
       fare_version_id: string;
@@ -195,6 +205,8 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
       const payment: StoredPayment = {
         id: row.id,
         journeySessionId: row.journey_session_id,
+        ...(row.trip_id ? { tripId: row.trip_id } : {}),
+        ...(row.destination_stage_id ? { destinationStageId: row.destination_stage_id } : {}),
         amountMinor: row.amount_minor,
         currency: row.currency,
         fareVersionId: row.fare_version_id,

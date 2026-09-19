@@ -10,13 +10,6 @@ export class JourneysController {
     @Inject(JourneyService) private readonly journeys: JourneyService,
   ) {}
 
-  @Get(':publicCode')
-  get(@Param('publicCode') publicCode: string): JourneySessionV1 {
-    const journey = this.store.journeyByPublicCode(publicCode);
-    if (!journey) throw new NotFoundException('Journey session not found');
-    return journey;
-  }
-
   @Get('routes/catalog')
   routes(@Headers('x-tenant-id') tenantId = 'tenant-demo-sacco'): readonly RouteV1[] {
     return this.journeys.listRoutes(tenantId);
@@ -38,5 +31,12 @@ export class JourneysController {
   @Get('trips/:id')
   trip(@Param('id') id: string, @Headers('x-tenant-id') tenantId = 'tenant-demo-sacco'): TripV1 {
     return this.journeys.getTrip(id, tenantId);
+  }
+
+  @Get(':publicCode')
+  get(@Param('publicCode') publicCode: string): JourneySessionV1 {
+    const journey = this.store.journeyByPublicCode(publicCode);
+    if (!journey) throw new NotFoundException('Journey session not found');
+    return { ...journey, route: this.journeys.routeForPublicCode(publicCode) };
   }
 }

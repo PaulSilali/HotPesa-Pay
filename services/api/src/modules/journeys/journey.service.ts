@@ -58,6 +58,10 @@ export class JourneyService {
     return tenantId === demoRoute.tenantId ? [demoRoute] : [];
   }
 
+  routeForPublicCode(publicCode: string): RouteV1 | undefined {
+    return publicCode === 'demo-nairobi-cbd-westlands' ? demoRoute : undefined;
+  }
+
   getRoute(routeId: string, tenantId: string): RouteV1 {
     if (tenantId !== demoRoute.tenantId || routeId !== demoRoute.id) {
       throw new NotFoundException('Route not found');

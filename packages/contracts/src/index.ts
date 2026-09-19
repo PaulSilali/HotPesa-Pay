@@ -79,7 +79,9 @@ export interface JourneySessionV1 {
 }
 
 export interface InitiatePaymentV1 {
-  readonly journeySessionId: string;
+  readonly journeySessionId?: string;
+  readonly tripId?: string;
+  readonly destinationStageId?: string;
   readonly phoneNumber: string;
   readonly scenario: MockPaymentScenario;
 }
@@ -87,6 +89,8 @@ export interface InitiatePaymentV1 {
 export interface PaymentAttemptV1 {
   readonly id: string;
   readonly journeySessionId: string;
+  readonly tripId?: string;
+  readonly destinationStageId?: string;
   readonly amountMinor: number;
   readonly currency: 'KES';
   readonly fareVersionId: string;

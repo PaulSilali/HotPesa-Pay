@@ -13,6 +13,8 @@ import type {
 } from '@hotpesa/contracts';
 import { createHash, randomUUID } from 'node:crypto';
 import { AuditService } from '../audit/audit.service.js';
+import { FareService } from '../fares/fare.service.js';
+import { JourneyService } from '../journeys/journey.service.js';
 import { MockMpesaProvider } from './mock-mpesa.provider.js';
 import { transitionPayment } from './payment-state.js';
 import { PaymentStore, type StoredPayment } from './payment.store.js';
@@ -25,16 +27,21 @@ export class PaymentsService {
     @Inject(PaymentStore) private readonly store: PaymentStore,
     @Inject(MockMpesaProvider) private readonly provider: MockMpesaProvider,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(FareService) private readonly fares: FareService = new FareService(new JourneyService()),
   ) {}
 
   async initiate(command: InitiatePaymentV1, idempotencyKey: string): Promise<PaymentAttemptV1> {
     this.validateInitiation(command, idempotencyKey);
+    const tripQuote = command.tripId && command.destinationStageId
+      ? this.fares.quote(command.tripId, command.destinationStageId)
+      : undefined;
+    const journeySessionId = command.journeySessionId ?? 'journey-session-demo';
     const journey = this.store.journeyByPublicCode(
-      command.journeySessionId === 'journey-session-demo'
+      journeySessionId === 'journey-session-demo'
         ? 'demo-nairobi-cbd-westlands'
-        : command.journeySessionId,
+        : journeySessionId,
     );
-    if (!journey || journey.id !== command.journeySessionId) {
+    if (!journey || journey.id !== journeySessionId) {
       throw new NotFoundException('Journey session not found');
     }
 
@@ -51,7 +58,9 @@ export class PaymentsService {
     let payment: StoredPayment = {
       id: randomUUID(),
       journeySessionId: journey.id,
-      amountMinor: journey.fare.amountMinor,
+      ...(command.tripId ? { tripId: command.tripId } : {}),
+      ...(command.destinationStageId ? { destinationStageId: command.destinationStageId } : {}),
+      amountMinor: tripQuote?.amountMinor ?? journey.fare.amountMinor,
       currency: journey.fare.currency,
       fareVersionId: journey.fare.fareVersionId,
       status: 'created',
@@ -185,6 +194,8 @@ export class PaymentsService {
     return {
       id: payment.id,
       journeySessionId: payment.journeySessionId,
+      ...(payment.tripId ? { tripId: payment.tripId } : {}),
+      ...(payment.destinationStageId ? { destinationStageId: payment.destinationStageId } : {}),
       amountMinor: payment.amountMinor,
       currency: payment.currency,
       fareVersionId: payment.fareVersionId,
@@ -203,13 +214,19 @@ export class PaymentsService {
     if (!KENYAN_SANDBOX_PHONE.test(command.phoneNumber)) {
       throw new BadRequestException('Use a Kenyan sandbox number in +2547XXXXXXXX format');
     }
+    if (!command.journeySessionId && !command.tripId) {
+      throw new BadRequestException('Journey session or trip is required');
+    }
+    if (command.tripId && !command.destinationStageId) {
+      throw new BadRequestException('Destination stage is required for a trip payment');
+    }
     const scenarios = new Set(['confirmed', 'failed', 'delayed', 'duplicate-callback', 'missing-callback']);
     if (!scenarios.has(command.scenario)) throw new BadRequestException('Unknown mock scenario');
   }
 
   private fingerprint(command: InitiatePaymentV1): string {
     return createHash('sha256')
-      .update(`${command.journeySessionId}|${command.phoneNumber}|${command.scenario}`)
+      .update(`${command.journeySessionId ?? ''}|${command.tripId ?? ''}|${command.destinationStageId ?? ''}|${command.phoneNumber}|${command.scenario}`)
       .digest('hex');
   }
 

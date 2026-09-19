@@ -21,10 +21,14 @@ describe('Phase 0 HTTP integration', () => {
 
   it('serves the synthetic journey session by public URL code', async () => {
     const response = await fetch(`${baseUrl}/api/v1/journey-sessions/demo-nairobi-cbd-westlands`);
-    const body = (await response.json()) as { fare: { amountMinor: number; fareVersionId: string } };
+    const body = (await response.json()) as {
+      fare: { amountMinor: number; fareVersionId: string };
+      route: { directions: readonly { stages: readonly unknown[] }[] };
+    };
 
     expect(response.status).toBe(200);
     expect(body.fare).toEqual(expect.objectContaining({ amountMinor: 8_000, fareVersionId: 'fare-demo-v1' }));
+    expect(body.route.directions[0]?.stages).toHaveLength(3);
   });
 
   it('starts an assigned trip and calculates a server-side destination fare', async () => {
@@ -76,6 +80,41 @@ describe('Phase 0 HTTP integration', () => {
     expect(callback.status).toBe(201);
     expect(JSON.parse(confirmedText)).toMatchObject({ status: 'confirmed' });
     expect(confirmedText).not.toContain(fullPhone);
+  });
+
+  it('associates a payment with the active trip and server fare quote', async () => {
+    const existingTrips = await fetch(`${baseUrl}/api/v1/journey-sessions/trips`, {
+      headers: { 'X-Tenant-Id': 'tenant-demo-sacco' },
+    });
+    const trips = (await existingTrips.json()) as { id: string }[];
+    const trip = trips[0] ?? (await (async () => {
+      const response = await fetch(`${baseUrl}/api/v1/journey-sessions/trips`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': 'tenant-demo-sacco' },
+        body: JSON.stringify({
+          conductorId: 'conductor-demo', vehicleId: 'vehicle-demo-kaa-000d',
+          routeId: 'route-cbd-westlands', directionId: 'direction-cbd-westlands',
+        }),
+      });
+      return (await response.json()) as { id: string };
+    })());
+
+    const paymentResponse = await fetch(`${baseUrl}/api/v1/payments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': 'http-trip-payment-001' },
+      body: JSON.stringify({
+        tripId: trip.id,
+        destinationStageId: 'stage-parklands',
+        phoneNumber: '+254700000008',
+        scenario: 'confirmed',
+      }),
+    });
+    await expect(paymentResponse.json()).resolves.toMatchObject({
+      tripId: trip.id,
+      destinationStageId: 'stage-parklands',
+      amountMinor: 5_000,
+      status: 'pending',
+    });
   });
 
   it('fails deterministically and records duplicate callback delivery once', async () => {
