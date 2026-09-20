@@ -110,3 +110,12 @@ Still pending or blocked:
 - The API and passenger PWA now default to loopback and require explicit `HOST=0.0.0.0` / `VITE_HOST=0.0.0.0` opt-in for trusted-LAN development; no device IP or hotspot gateway is hard-coded.
 - Passenger entry remains the approved scoped QR/short-address route. Local access is separate from provider connectivity and never establishes payment confirmation.
 - API and PWA typechecks, PWA build and local API regression tests passed. A physical Android two-device hotspot test has not been executed; the evidence procedure is in `docs/phase-1/HOTSPOT_PHYSICAL_TEST_PLAN.md`.
+
+## Phase 1 Sprint 4C local resilience evidence (2026-09-20)
+
+- Scope: local development proof only for the approved OD-FRS-004 bounded reconciliation policy; no live M-Pesa, production credentials or controlled DOCX changes.
+- Live Compose evidence: PostgreSQL 16 was healthy on loopback `127.0.0.1:15432`; Redis 7 was healthy on loopback `127.0.0.1:6379` and returned `PONG`.
+- `services/api/test/reconciliation.live.integration.test.ts` passed against those live services using isolated short test delays. It proved durable pending payment creation, minimal BullMQ job payload and delay, worker consumption, missing-callback reconciliation, provider-unavailable recovery, retry exhaustion after exactly five attempts, callback/worker race safety, duplicate-job suppression, API-store/worker restart recovery, manual late trusted failure, and Redis-unavailable enqueue handling.
+- PostgreSQL remains the durable authority for payments and audit evidence. A Redis enqueue failure leaves the already-persisted payment pending and records `payment.reconciliation-scheduling-failed`; it does not claim scheduled work or falsely confirm the payment.
+- The development Redis service is configured with `--save "" --appendonly no`. Worker process restart and API restart were proven while Redis remains running; Redis container recreation or data loss is not a queue-durability guarantee and remains a development-configuration limitation.
+- This is engineering evidence, not Phase 1 acceptance or production readiness. External provider, finance, legal/privacy, hosting and formal approval gates remain unchanged.

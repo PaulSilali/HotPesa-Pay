@@ -95,8 +95,7 @@ export class PaymentsService {
       providerRequestId: acceptance.providerRequestId,
     });
     await this.store.flush();
-    const scheduled = await this.reconciliationQueue.schedule(payment.id);
-    if (scheduled) this.audit.record('payment.reconciliation-scheduled', payment.id, { attempt: 1 });
+    await this.scheduleReconciliation(payment.id, 1);
     this.scheduleCallbacks(payment);
     return this.publicPayment(payment);
   }
@@ -122,22 +121,20 @@ export class PaymentsService {
       providerRequestId: payment.providerRequestId,
       scenario: payment.scenario,
     });
-    for (const evidence of evidenceItems) payment = this.applyEvidence(payment, evidence);
+    for (const evidence of evidenceItems) payment = await this.applyEvidence(payment, evidence);
     await this.store.flush();
     return this.publicPayment(payment);
   }
 
-  async reconcile(id: string): Promise<PaymentAttemptV1> {
+  async reconcile(id: string, attempt?: number): Promise<PaymentAttemptV1> {
     let payment = this.requiredPayment(id);
     if (!payment.providerRequestId) throw new ConflictException('Provider request is unavailable');
-    this.audit.record('payment.reconciliation-requested', payment.id, {
-      providerRequestId: payment.providerRequestId,
-    });
+    this.audit.record('payment.reconciliation-requested', payment.id, { providerRequestId: payment.providerRequestId, ...(attempt ? { attempt } : {}) });
     const evidence = await this.provider.reconcile({
       providerRequestId: payment.providerRequestId,
       scenario: payment.scenario,
     });
-    if (evidence) payment = this.applyEvidence(payment, evidence);
+    if (evidence) payment = await this.applyEvidence(payment, evidence);
     await this.store.flush();
     return this.publicPayment(payment);
   }
@@ -163,11 +160,36 @@ export class PaymentsService {
     return this.publicPayment(payment);
   }
 
+  async scheduleReconciliation(id: string, attempt: number): Promise<boolean> {
+    try {
+      const scheduled = await this.reconciliationQueue.schedule(id, attempt);
+      if (scheduled) this.audit.record('payment.reconciliation-scheduled', id, { attempt });
+      await this.store.flush();
+      return scheduled;
+    } catch {
+      this.audit.record('payment.reconciliation-scheduling-failed', id, { attempt });
+      await this.store.flush();
+      return false;
+    }
+  }
+
+  async reconciliationProviderUnavailable(id: string, attempt: number): Promise<PaymentAttemptV1> {
+    const payment = this.requiredPayment(id);
+    this.audit.record('payment.reconciliation-provider-unavailable', id, { attempt });
+    await this.store.flush();
+    return this.publicPayment(payment);
+  }
+
+  async reconciliationProcessed(id: string, attempt: number): Promise<void> {
+    this.audit.record('payment.reconciliation-processed', id, { attempt });
+    await this.store.flush();
+  }
+
   async createConflict(id: string): Promise<PaymentAttemptV1> {
     let payment = this.requiredPayment(id);
     if (!payment.providerRequestId) throw new ConflictException('Provider request is unavailable');
     const outcome = payment.status === 'confirmed' ? 'failed' : 'confirmed';
-    payment = this.applyEvidence(payment, {
+    payment = await this.applyEvidence(payment, {
       eventId: `mock-conflict-${payment.providerRequestId}-${outcome}`,
       providerRequestId: payment.providerRequestId,
       outcome,
@@ -178,8 +200,8 @@ export class PaymentsService {
     return this.publicPayment(payment);
   }
 
-  private applyEvidence(payment: StoredPayment, evidence: ProviderEvidenceV1): StoredPayment {
-    if (!this.store.recordProviderEvent(evidence)) {
+  private async applyEvidence(payment: StoredPayment, evidence: ProviderEvidenceV1): Promise<StoredPayment> {
+    if (!await this.store.recordProviderEvent(evidence)) {
       this.audit.record('payment.provider-evidence-duplicate', payment.id, {
         providerEventId: evidence.eventId,
       });

@@ -108,14 +108,19 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
     );
   }
 
-  recordProviderEvent(event: ProviderEvidenceV1): boolean {
+  async recordProviderEvent(event: ProviderEvidenceV1): Promise<boolean> {
     if (this.providerEventIds.has(event.eventId)) return false;
-    this.providerEventIds.add(event.eventId);
-    this.queue(
+    if (!this.pool) {
+      this.providerEventIds.add(event.eventId);
+      return true;
+    }
+    const inserted = await this.enqueue<{ event_id: string }>(
       `INSERT INTO provider_events (event_id, provider_request_id, outcome, occurred_at)
-       VALUES ($1,$2,$3,$4) ON CONFLICT (event_id) DO NOTHING`,
+       VALUES ($1,$2,$3,$4) ON CONFLICT (event_id) DO NOTHING RETURNING event_id`,
       [event.eventId, event.providerRequestId, event.outcome, event.occurredAt],
     );
+    if (inserted.rowCount === 0) return false;
+    this.providerEventIds.add(event.eventId);
     return true;
   }
 
@@ -142,9 +147,17 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
 
   private queue(sql: string, values: readonly unknown[]): void {
     if (!this.pool) return;
+    void this.enqueue(sql, values);
+  }
+
+  private async enqueue<Row extends Record<string, unknown> = Record<string, unknown>>(sql: string, values: readonly unknown[]): Promise<{ rowCount: number; rows: Row[] }> {
+    if (!this.pool) return { rowCount: 0, rows: [] };
+    let result: { rowCount: number | null; rows: Row[] } | undefined;
     this.pendingWrite = this.pendingWrite.then(async () => {
-      await this.pool?.query(sql, [...values]);
+      result = await this.pool?.query<Row>(sql, [...values]);
     });
+    await this.pendingWrite;
+    return { rowCount: result?.rowCount ?? 0, rows: result?.rows ?? [] };
   }
 
   private async loadSnapshot(): Promise<void> {
