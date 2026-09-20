@@ -7,7 +7,7 @@ This record separates workstation verification from required physical-device evi
 | Item | Result | Evidence / limitation |
 | --- | --- | --- |
 | PC-hosted local HTTP configuration | READY | `HOST`, `VITE_HOST`, `VITE_API_URL` and explicit `CORS_ORIGINS` are configuration inputs. |
-| Android hotspot as access point | NOT TESTED | Requires conductor Android device and passenger device. |
+| Physical hotspot/local-network transport | PASS | PC-hosted HotPesa API and Passenger PWA were reached over the physical local network. This is not evidence that Android hosts HotPesa services. |
 | Android hosting HotPesa services | NOT IMPLEMENTED | Current NestJS/PostgreSQL/Redis/BullMQ server stack is not an Android app runtime. ADR-002 is Decision Required and ADR-001/008 are Recommended for approval. |
 | QR display from conductor host | NOT IMPLEMENTED | FR-JRN-004 requires it, but no conductor-host UI exists in this repository. |
 | Local DNS/mDNS/captive portal | OPEN | No approved discovery mechanism is selected. |
@@ -17,30 +17,33 @@ This record separates workstation verification from required physical-device evi
 
 | Field | Value |
 | --- | --- |
-| Test date / operator |  |
-| Host device and OS |  |
-| Passenger device(s) and browser |  |
-| Topology A/B/C |  |
-| Observed host IP (not a permanent configuration) |  |
-| Passenger PWA URL / API URL |  |
-| Trip ID / public code |  |
-| Destination / approved fare |  |
-| Internet state |  |
-| Payment scenario |  |
+| Test date / operator | Physical field proof reported to the repository; operator details were not recorded. |
+| Host device and OS | PC-hosted development stack; device/OS details were not recorded. |
+| Passenger device(s) and browser | Physical passenger client; device/browser details were not recorded. |
+| Topology A/B/C | PC-hosted API and Passenger PWA over a physical local network/hotspot. |
+| Observed host IP (not a permanent configuration) | Not retained as evidence; local host address remains environment configuration. |
+| Passenger PWA URL / API URL | Physical local-network URLs reached successfully. |
+| Trip ID / public code | Opaque active journey resolved; identifier deliberately not recorded. |
+| Destination / approved fare | Westlands; approved server quote KES 80.00. |
+| Internet state | Provider confirmation was exercised with trusted Mock M-Pesa evidence. No no-internet journey result is claimed. |
+| Payment scenario | Passenger initiation followed by trusted Mock M-Pesa confirmation. |
 
 ## Acceptance evidence
 
 | Check | Result | Evidence |
 | --- | --- | --- |
-| Hotspot/local network created | NOT TESTED |  |
-| Passenger joins | NOT TESTED |  |
-| Passenger PWA reachable | NOT TESTED |  |
-| API reachable | NOT TESTED |  |
-| Active journey / destination / fare quote | NOT TESTED |  |
-| Payment initiation boundary | NOT TESTED |  |
+| Hotspot/local network created | PASS | Physical PC-hosted local-network transport was used for the verified flow. |
+| Passenger joins | PASS | Passenger client reached the local Passenger PWA. |
+| Passenger PWA reachable | PASS | Passenger PWA loaded over the physical local network. |
+| API reachable | PASS | Passenger flow reached the HotPesa API over the physical local network. |
+| Active journey | PASS | Opaque active journey resolved successfully. |
+| Destination selection | PASS | Passenger selected Westlands. |
+| Fare quote | PASS — KES 80.00 | Server returned the approved Westlands fare quote of KES 80.00. |
+| Payment initiation boundary | PASS | Passenger action created the payment initiation request; no client-authoritative fare is claimed. |
+| Trusted Mock M-Pesa confirmation | PASS | Trusted server-side Mock M-Pesa evidence confirmed the payment. |
 | No-internet local journey | NOT TESTED |  |
-| Reconnect | NOT TESTED |  |
-| Trip-close invalidation | NOT TESTED |  |
+| Reconnect | PASS | Passenger flow reconnected successfully during the physical local-network proof. |
+| Trip-close invalidation | PASS | Closing the trip invalidated the active passenger journey. |
 | Two-client behaviour | NOT TESTED |  |
 
 ## Narrow threat review

@@ -124,4 +124,6 @@ Still pending or blocked:
 
 - A configuration-driven PC-hosted local journey URL helper and field-test record are available for trusted development networking. The helper uses an observed runtime host address; no workstation or hotspot IP is embedded in source.
 - Existing API/PWA bind and CORS controls remain explicit configuration: `HOST`, `VITE_HOST`, `VITE_API_URL` and `CORS_ORIGINS`. PostgreSQL and Redis remain loopback-only Compose services.
-- No physical hotspot, Android device, no-internet, reconnect, multi-passenger or Android-hosted-service proof is recorded. The current NestJS/PostgreSQL/Redis/BullMQ stack is not an Android host implementation; selecting an edge/companion architecture remains a decision gate.
+- Physical PC-hosted hotspot/local-network proof is recorded in `docs/phase-1/SPRINT_5_FIELD_CONNECTIVITY_RECORD.md`: API and Passenger PWA reachability, active journey resolution, Westlands destination selection and server quote (KES 80.00), payment initiation, trusted Mock M-Pesa confirmation, reconnect, and trip-close invalidation all passed.
+- This does not establish Android hosting. Android-hosted services remain unimplemented, and the current NestJS/PostgreSQL/Redis/BullMQ stack is not an Android host implementation; selecting an edge/companion architecture remains a decision gate.
+- Multi-passenger behavior and no-internet local journey were not tested. This evidence is not Phase 1 acceptance, production readiness, live M-Pesa proof or implementation authority for ADR-002.

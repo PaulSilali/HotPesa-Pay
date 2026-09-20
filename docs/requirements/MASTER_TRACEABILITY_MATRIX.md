@@ -71,3 +71,9 @@ until the formal DOCX publication process runs.
 | --- | --- | --- | --- | --- |
 | Explicit trusted-LAN development binding | BR-JRN-001; PR-PAX-001; PR-JRN-003; FR-PAX-001; FR-JRN-004; FR-OFF-002 | API `HOST` and `CORS_ORIGINS`; PWA `VITE_HOST` configuration | API and PWA typechecks/build pass; physical test plan prepared | Implemented locally; physical Android/hotspot proof not executed |
 | Scoped passenger entry and payment truth boundary | FR-PAX-001/011; FR-OFF-002/003; US-PAX-001/013 | Existing PWA `/journey/<public-code>` flow and server-authoritative payment API | Existing API/payment tests pass | Existing bounded implementation; active-session lifecycle and physical transport proof remain pending |
+
+## Phase 1 Sprint 5 physical hotspot evidence
+
+| Outcome | Requirements | Implementation evidence | Physical evidence | State |
+| --- | --- | --- | --- | --- |
+| PC-hosted local passenger payment flow | BR-JRN-001â€“002; BR-PAY-003â€“006; PR-JRN-001â€“008; PR-PAX-001â€“006; FR-JRN-004/009/010; FR-PAX-001/005/006; FR-FAR-001/002; FR-PAY-001/007â€“010; US-JRN-001â€“004; US-PAX-001â€“007 | Configuration-driven API/PWA bind, server-authoritative fare quote, payment state and trip-close invalidation | `SPRINT_5_FIELD_CONNECTIVITY_RECORD.md`: API/PWA reachability, active journey, Westlands KES 80.00 quote, payment initiation, trusted Mock M-Pesa confirmation, reconnect and close invalidation passed on a PC-hosted physical local network | Tested in the recorded PC-hosted field configuration; Android hosting, multi-passenger behavior and no-internet local journey remain not tested |
