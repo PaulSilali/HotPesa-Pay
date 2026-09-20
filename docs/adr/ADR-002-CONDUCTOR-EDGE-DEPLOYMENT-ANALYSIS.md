@@ -1,13 +1,16 @@
 # ADR-002 conductor device / edge deployment analysis
 
-> Supporting analysis for [ADR-002](ADR-002-use-an-android-first-conductor-host.md). It does not alter the controlled ADR register, whose status remains **Decision required**.
+> Supporting analysis for [ADR-002](ADR-002-use-an-android-first-conductor-host.md). The project-owner decision below authorizes bounded implementation preparation; it does not alter the controlled ADR register, whose status remains **Decision required** until controlled publication.
 
 | Field | Value |
 | --- | --- |
-| Analysis status | **Recommended for approval** |
-| Decision owner | Mobile and Architecture Leads, with Security, Operations and Product review |
-| Decision requested | Adopt an Android-native lightweight vehicle edge that participates in the ADR-001 hybrid edge/cloud architecture; do not host the existing server stack on a conductor phone. |
-| Scope | Target edge deployment/runtime only; no implementation authorization |
+| Controlled ADR status | **Decision required** |
+| Project-owner decision status | **Approved for bounded implementation; controlled synchronization pending** |
+| Decision owner | Project owner, with Mobile, Architecture, Security and Operations review |
+| Approved decision | Use a hybrid edge/cloud MVP model. A lightweight Android-native companion edge may host local passenger journey/session functions and synchronized non-financial route/fare data. The cloud/backend remains authoritative for payments, provider credentials, payment evidence, reconciliation, audit, confirmed revenue, tenant policy and durable financial state. |
+| Explicit exclusion | Do not deploy the full NestJS + PostgreSQL + Redis + BullMQ + worker stack on a conductor Android phone. |
+| Fallback | Use a dedicated onboard edge device only if Android fails approved reliability, security, lifecycle, concurrency or endurance criteria. |
+| Scope | Target edge deployment/runtime decision only; no runtime implementation is included in this record. |
 
 ## Context and problem
 

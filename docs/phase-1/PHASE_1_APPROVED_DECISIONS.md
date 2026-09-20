@@ -20,6 +20,7 @@ settlement model, legal policy or privacy policy.
 | P1-DEC-008 | A trip may close with pending or review-required attempts only when the closer supplies the required exception reason. Existing attempts remain processable after closure; closure blocks new attempts but does not discard late trusted evidence. Failed and expired attempts remain separate non-revenue states. | FR-JRN-009/010; FR-REC-*; US-CON-008; US-FIN-005 |
 | P1-DEC-009 | Phase 1 trip summaries include counts by payment state, confirmed digital revenue amount, total payment-attempt count and exception count. Only `confirmed` attempts contribute to confirmed revenue. Passenger count is not treated as an authoritative financial measure. Cash, refund and reversal fields are excluded from this slice because cash custody and production refund/reversal are outside approved MVP scope. | FR-RPT-001/002; US-FIN-005; US-RPT-001; PRD exclusions; OD-006 |
 | OD-FRS-004 | Pending payments become eligible for automated reconciliation after approximately 30 seconds. Phase 1 permits five reconciliation attempts with progressive 30-second, 1-minute, 2-minute, 5-minute and 10-minute delays. Exhaustion moves an unresolved attempt to `review-required`, never `failed` or `expired`; authorized manual reconciliation remains available. Late trusted confirmation or failure remains authoritative and idempotent. Retry values are technically configurable; production changes require controlled Product/Finance/Operations approval. | FR-COM-005/010; FR-PAY-002/009–014; FR-OFF-005; OD-FRS-004 approval |
+| P1-DEC-010 | Use a hybrid edge/cloud MVP operating model. A lightweight Android-native companion edge may host local passenger journey/session functions and synchronized non-financial route/fare data. The cloud/backend remains authoritative for payments, provider credentials, payment evidence, reconciliation, audit, confirmed revenue, tenant policy and durable financial state. Do not deploy the full NestJS + PostgreSQL + Redis + BullMQ + worker stack on the conductor phone. A dedicated onboard edge device is the fallback if Android fails approved reliability, security, lifecycle, concurrency or endurance criteria. | ADR-001; ADR-002; ADR-004; ADR-007; ADR-008; ADR-011; BR-JRN-001–002; FR-JRN-001–012; FR-OFF-002/003; SEC-DEV-001–008; NFR-MOB-001–008 |
 
 ## Approval limits and synchronization gate
 
@@ -27,6 +28,7 @@ settlement model, legal policy or privacy policy.
 - The exact token/session wire shape, identifier formats and persistence schema remain implementation details constrained by the decisions above.
 - The controlled ADR/FRS/USUC/DMAC synchronization process must record these decisions before they are treated as durable controlled-specification authority.
 - No production credentials, live M-Pesa integration, physical-device proof, hosting choice or legal/privacy conclusion is implied.
+- P1-DEC-010 does not authorize an Android implementation until the controlled ADR/DMAC synchronization, security review and approved target-device validation gates are complete.
 
 ## Implementation consequence
 
