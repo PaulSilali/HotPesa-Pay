@@ -96,3 +96,11 @@ See `ANDROID_EDGE_PREREQUISITE_BATCH_4.md` for the consolidated approval package
 | Android Edge Phase 0 — skeleton | READY | Scaffold, API 29 configuration, Room/encryption/Keystore abstractions, `/edge/v1/health`, lifecycle skeleton and test foundation only. |
 | Android Edge Phase 1 — local journey | BLOCKED | AE-08 production transport/security, controlled DMAC publication and target-device qualification/evidence remain required. |
 | Production Android edge | BLOCKED | Production TLS/transport, enrollment/revocation implementation, exact security lifecycles, controlled publication and field evidence remain required. |
+
+## Phase 0 implementation evidence
+
+The bounded skeleton is implemented in `apps/android-host` and has current local Gradle
+assembly, JVM lifecycle/health and encryption-boundary test evidence. Room and Android
+Keystore instrumentation tests exist but no emulator or physical device was attached during
+this pass. See `ANDROID_EDGE_PHASE_0_IMPLEMENTATION.md`. This does not change the Phase 1
+or production gates above.

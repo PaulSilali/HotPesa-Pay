@@ -73,6 +73,12 @@ until the formal DOCX publication process runs.
 | Explicit trusted-LAN development binding | BR-JRN-001; PR-PAX-001; PR-JRN-003; FR-PAX-001; FR-JRN-004; FR-OFF-002 | API `HOST` and `CORS_ORIGINS`; PWA `VITE_HOST` configuration | API and PWA typechecks/build pass; physical test plan prepared | Implemented locally; physical Android/hotspot proof not executed |
 | Scoped passenger entry and payment truth boundary | FR-PAX-001/011; FR-OFF-002/003; US-PAX-001/013 | Existing PWA `/journey/<public-code>` flow and server-authoritative payment API | Existing API/payment tests pass | Existing bounded implementation; active-session lifecycle and physical transport proof remain pending |
 
+## Android Edge Phase 0 implementation evidence
+
+| Outcome | Requirements | ADRs / approval evidence | Implementation and test evidence | State |
+| --- | --- | --- | --- | --- |
+| Non-financial Android edge runtime skeleton | BR-JRN-001–002; BR-OPS-001–005; FR-JRN-004/008; FR-OFF-001–003; SEC-DEV-001–008; NFR-MOB-001–008 | ADR-001/002/004/007/008/011; `ANDROID_EDGE_PREREQUISITE_BATCH_4.md` AE-01–07; `ANDROID_EDGE_PHASE_0_IMPLEMENTATION.md` | `apps/android-host`: API 29 configuration, Room metadata schema v1, Keystore identity abstraction, development-only `/edge/v1/health`, lifecycle JVM tests and Android instrumentation-test foundation; local Gradle build/test/lint evidence | Implemented and JVM-tested locally. Emulator/physical Room/Keystore proof, production transport, concrete DB encryption, local authorization, sync and field lifecycle evidence remain blocked/deferred. |
+
 ## Phase 1 Sprint 5 physical hotspot evidence
 
 | Outcome | Requirements | Implementation evidence | Physical evidence | State |

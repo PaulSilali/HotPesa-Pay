@@ -153,3 +153,11 @@ Still pending or blocked:
 
 - AE-01 through AE-07 and AE-09 through AE-11 are project-owner approved. AE-09 through AE-11 are Phase 0/MVP field-validation baselines, not production SLAs.
 - Android Edge Phase 0 skeleton is ready only within the approved bounded scope. Phase 1 local journey and production deployment remain blocked by AE-08 production transport/TLS, controlled publication and required target-device/security evidence.
+
+## Android edge Phase 0 skeleton implementation (2026-09-20)
+
+- `apps/android-host` is now a Kotlin Android project using Gradle Wrapper 8.9, Android Gradle Plugin 8.7.3, Kotlin 2.0.21, JDK 17, `minSdk` 29 and `compileSdk`/`targetSdk` 35.
+- Current local evidence: Wrapper version PASS; debug APK assembly PASS; debug and release JVM test variants PASS; Android lint PASS with warnings only and no errors. The narrow development-only server exposes `GET /edge/v1/health`; JVM tests cover start, stop, endpoint unavailability after stop and restart.
+- Room schema v1 contains non-financial metadata only. A Keystore device-signing abstraction and encrypted-database key-reference boundary exist; no raw key is stored or exposed, and concrete database encryption is not claimed.
+- Room and Android Keystore instrumentation tests are present but **not executed**: `adb devices` found no emulator or physical device. Android foreground/background endurance, hotspot, concurrency and physical device evidence remain field-validation work.
+- No payment, provider credential/evidence, reconciliation, confirmed-revenue, financial persistence, synchronization, local journey/fare endpoint, production TLS or enrolment/revocation functionality was introduced. Central HotPesa remains authoritative. See `docs/phase-1/ANDROID_EDGE_PHASE_0_IMPLEMENTATION.md`.
