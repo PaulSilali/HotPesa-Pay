@@ -119,3 +119,9 @@ Still pending or blocked:
 - PostgreSQL remains the durable authority for payments and audit evidence. A Redis enqueue failure leaves the already-persisted payment pending and records `payment.reconciliation-scheduling-failed`; it does not claim scheduled work or falsely confirm the payment.
 - The development Redis service is configured with `--save "" --appendonly no`. Worker process restart and API restart were proven while Redis remains running; Redis container recreation or data loss is not a queue-durability guarantee and remains a development-configuration limitation.
 - This is engineering evidence, not Phase 1 acceptance or production readiness. External provider, finance, legal/privacy, hosting and formal approval gates remain unchanged.
+
+## Phase 1 Sprint 5 topology preparation (2026-09-20)
+
+- A configuration-driven PC-hosted local journey URL helper and field-test record are available for trusted development networking. The helper uses an observed runtime host address; no workstation or hotspot IP is embedded in source.
+- Existing API/PWA bind and CORS controls remain explicit configuration: `HOST`, `VITE_HOST`, `VITE_API_URL` and `CORS_ORIGINS`. PostgreSQL and Redis remain loopback-only Compose services.
+- No physical hotspot, Android device, no-internet, reconnect, multi-passenger or Android-hosted-service proof is recorded. The current NestJS/PostgreSQL/Redis/BullMQ stack is not an Android host implementation; selecting an edge/companion architecture remains a decision gate.
