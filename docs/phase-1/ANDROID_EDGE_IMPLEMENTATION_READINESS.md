@@ -20,8 +20,8 @@ worker stack must not run on the conductor phone.
 | Android device matrix | RECOMMENDED FOR APPROVAL | Capability-based matrix with API 29 minimum and API 31+ preferred; qualified devices and field evidence remain required. |
 | Minimum Android OS/API level | RECOMMENDED FOR APPROVAL | API 29 minimum runtime; API 31+ preferred deployment generation, subject to lifecycle/security validation. |
 | Embedded persistence choice | RECOMMENDED FOR APPROVAL | Room over SQLite; encryption, schema/versioning and retention remain controlled design decisions. |
-| Local edge API contract | RECOMMENDED FOR APPROVAL | Narrow versioned `/edge/v1` Passenger-PWA API; exact DMAC/contracts remain required. |
-| Edge/cloud synchronization contract | RECOMMENDED FOR APPROVAL | Server-issued versioned datasets plus authenticated idempotent inbox/outbox; exact schema remains required. |
+| Local edge API contract | RECOMMENDED FOR APPROVAL | Batch 3 defines proposed `/edge/v1` schemas, errors and handoff boundary; controlled DMAC approval remains required. |
+| Edge/cloud synchronization contract | RECOMMENDED FOR APPROVAL | Batch 3 defines proposed versioned resource and idempotent inbox/outbox envelopes; controlled DMAC approval remains required. |
 | Authentication/device identity | RECOMMENDED FOR APPROVAL | Opaque app-issued device ID bound to Keystore keypair; enrollment workflow approval remains open. |
 | Local encryption | RECOMMENDED FOR APPROVAL | Keystore-wrapped key plus Room-compatible full-database encryption; implementation detail remains open. |
 | Secret storage | READY | Provider credentials, callback secrets and production payment authority are not allowed on edge; implementation storage mechanics remain a security detail. |
@@ -85,3 +85,5 @@ See `ANDROID_EDGE_PREREQUISITE_BATCH_1.md` for the recommendation rationale, dat
 proposed `/edge/v1` API, synchronization and offline contract.
 See `ANDROID_EDGE_PREREQUISITE_BATCH_2.md` for Batch 2 identity, encryption, transport,
 update, telemetry and device-loss recommendations.
+See `ANDROID_EDGE_PREREQUISITE_BATCH_3.md` for proposed schemas, replay/conflict semantics,
+fare validity, field qualification bands and remaining acceptance gates.

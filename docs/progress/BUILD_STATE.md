@@ -138,3 +138,8 @@ Still pending or blocked:
 
 - Security recommendations now cover app-issued device identity bound to Keystore keys, central revocation, encrypted local persistence, restricted local authorization, managed updates and minimized telemetry.
 - Production local TLS/HTTP, enrollment ownership, credential lifecycle, encryption implementation, retention/wipe and rooted-device policy remain decisions; no Android code or controlled DOCX change is claimed.
+
+## Android edge prerequisite Batch 3 (2026-09-20)
+
+- Proposed `/edge/v1` schemas, stable error codes, versioned synchronization envelopes, replay/conflict rules, fare-validity and central payment-handoff boundaries are documented for controlled DMAC review.
+- Concurrency, latency, endurance, charging, thermal, storage/retention and offline-duration values remain Product/Operations decisions and field-evidence gates; no implementation is claimed.
