@@ -17,22 +17,22 @@ worker stack must not run on the conductor phone.
 
 | Prerequisite | Classification | Current boundary / next required decision |
 | --- | --- | --- |
-| Android device matrix | RECOMMENDED FOR APPROVAL | Capability-based matrix with API 29 minimum and API 31+ preferred; qualified devices and field evidence remain required. |
-| Minimum Android OS/API level | RECOMMENDED FOR APPROVAL | API 29 minimum runtime; API 31+ preferred deployment generation, subject to lifecycle/security validation. |
-| Embedded persistence choice | RECOMMENDED FOR APPROVAL | Room over SQLite; encryption, schema/versioning and retention remain controlled design decisions. |
-| Local edge API contract | RECOMMENDED FOR APPROVAL | Batch 3 defines proposed `/edge/v1` schemas, errors and handoff boundary; controlled DMAC approval remains required. |
-| Edge/cloud synchronization contract | RECOMMENDED FOR APPROVAL | Batch 3 defines proposed versioned resource and idempotent inbox/outbox envelopes; controlled DMAC approval remains required. |
-| Authentication/device identity | RECOMMENDED FOR APPROVAL | Opaque app-issued device ID bound to Keystore keypair; enrollment workflow approval remains open. |
-| Local encryption | RECOMMENDED FOR APPROVAL | Keystore-wrapped key plus Room-compatible full-database encryption; implementation detail remains open. |
+| Android device matrix | APPROVED | Capability-based matrix with API 29 minimum and API 31+ preferred; qualified devices and field evidence remain required. |
+| Minimum Android OS/API level | APPROVED | API 29 minimum runtime; API 31+ preferred deployment generation. |
+| Embedded persistence choice | APPROVED | Room over SQLite; encryption implementation remains a controlled detail. |
+| Local edge API contract | APPROVED FOR PHASE 0 BOUNDARY | Batch 3 `/edge/v1` health boundary is permitted; full DMAC/sync remains blocked. |
+| Edge/cloud synchronization contract | APPROVED FOR PHASE 0 BOUNDARY | Contract direction is approved; production sync remains blocked. |
+| Authentication/device identity | APPROVED | Opaque app-issued device ID bound to Keystore keypair; production enrollment workflow remains excluded. |
+| Local encryption | APPROVED FOR PHASE 0 BOUNDARY | Keystore-wrapped encrypted-storage boundary; exact implementation remains detail. |
 | Secret storage | READY | Provider credentials, callback secrets and production payment authority are not allowed on edge; implementation storage mechanics remain a security detail. |
 | Android lifecycle/restart handling | IMPLEMENTATION DETAIL | Design once persistence/outbox and OS floor are selected; prove restart and background behavior. |
 | Hotspot/network behavior | DECISION REQUIRED | Approve topology, local address/discovery and production TLS/HTTP model. |
 | Offline behavior | READY | Local non-financial journey discovery/display/selection and valid synchronized fare lookup are allowed; payment confirmation, settlement, provider reconciliation and confirmed revenue are not. |
 | Conflict/version handling | RECOMMENDED FOR APPROVAL | Immutable/versioned IDs, central revocation/closure wins, idempotent replay and unavailable-on-stale behavior. |
-| Software update strategy | DECISION REQUIRED | Define signed release, rollout, rollback, support window and minimum-version policy. |
-| Telemetry/observability | DECISION REQUIRED | Define health, storage, sync and security telemetry with privacy/redaction limits. |
-| Field concurrency target | DECISION REQUIRED | Product/Operations must set measured passenger concurrency acceptance criteria. |
-| Endurance/battery acceptance criteria | DECISION REQUIRED | Product/Operations must set trip-duration, battery, thermal and restart acceptance criteria. |
+| Software update strategy | APPROVED | Managed/private updates, minimum-version enforcement and minimal telemetry; implementation owner remains detail. |
+| Telemetry/observability | APPROVED | Minimized operational/security telemetry; retention remains implementation detail. |
+| Field concurrency target | APPROVED BASELINE | 10 minimum, 20 recommended, 30+ stress; field evidence required. |
+| Endurance/battery acceptance criteria | APPROVED BASELINE | 4-hour minimum, 8-hour soak, charging/thermal bounds; field evidence required. |
 
 ## Edge/cloud data classification
 
@@ -88,3 +88,11 @@ update, telemetry and device-loss recommendations.
 See `ANDROID_EDGE_PREREQUISITE_BATCH_3.md` for proposed schemas, replay/conflict semantics,
 fare validity, field qualification bands and remaining acceptance gates.
 See `ANDROID_EDGE_PREREQUISITE_BATCH_4.md` for the consolidated approval package and phased implementation gate.
+
+## Current implementation gate
+
+| Scope | Status | Boundary |
+| --- | --- | --- |
+| Android Edge Phase 0 — skeleton | READY | Scaffold, API 29 configuration, Room/encryption/Keystore abstractions, `/edge/v1/health`, lifecycle skeleton and test foundation only. |
+| Android Edge Phase 1 — local journey | BLOCKED | AE-08 production transport/security, controlled DMAC publication and target-device qualification/evidence remain required. |
+| Production Android edge | BLOCKED | Production TLS/transport, enrollment/revocation implementation, exact security lifecycles, controlled publication and field evidence remain required. |

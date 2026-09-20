@@ -1,6 +1,19 @@
 # Android edge prerequisite batch 4 — approval package
 
-> Status: **Project-owner approval required**. Controlled publication remains separate.
+> Status: **Project-owner approvals recorded**. Controlled publication remains separate.
+
+## Project-owner selections
+
+| Decision | Project-owner status | Controlled-register status | Implementation impact |
+| --- | --- | --- | --- |
+| AE-01–AE-07 | APPROVED | Not published | Authorizes only Android Edge Phase 0 skeleton. |
+| AE-08 | KEEP OPEN — SECURITY DECISION REQUIRED | Not published | Blocks production local transport and Phase 1 local journey. |
+| AE-09–AE-11 | APPROVED as Phase 0/MVP field-validation baselines | Not published | Not production SLAs or commercial commitments. |
+
+The approvals preserve central financial authority and the prohibition on the full
+NestJS/PostgreSQL/Redis/BullMQ/worker stack on Android. They do not authorize production
+sync, provider credentials, live M-Pesa, offline payment, reconciliation authority,
+confirmed-revenue authority or production rollout.
 
 ## Consolidated decision register
 
@@ -51,10 +64,10 @@ These are **proposed for approval**, not current requirements: 10 concurrent pas
 
 | Decision | Approve? |
 | --- | --- |
-| AE-01 through AE-07 proposed architecture/security/contract defaults | YES / NO / MODIFY |
-| AE-09 managed update and minimal telemetry model | YES / NO / MODIFY |
-| AE-10 retention, wipe, integrity and backup model | YES / NO / MODIFY |
-| AE-11 proposed operations acceptance band | YES / NO / MODIFY |
+| AE-01 through AE-07 proposed architecture/security/contract defaults | APPROVED |
+| AE-09 managed update and minimal telemetry model | APPROVED |
+| AE-10 retention, wipe, integrity and backup model | APPROVED |
+| AE-11 proposed operations acceptance band | APPROVED as Phase 0/MVP field-validation baselines |
 | AE-08 production local transport | KEEP OPEN — SECURITY DECISION REQUIRED |
 
 ## Status boundary

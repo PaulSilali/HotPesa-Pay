@@ -148,3 +148,8 @@ Still pending or blocked:
 
 - Batches 1–3 are consolidated into an explicit project-owner approval package. Production local transport remains a Security decision; operational targets are proposed rather than approved.
 - A future approved Phase 0 skeleton is limited to scaffold, API configuration, Room/Keystore boundaries, local health and tests; it excludes sync, payments and provider credentials.
+
+## Android edge project-owner approvals (2026-09-20)
+
+- AE-01 through AE-07 and AE-09 through AE-11 are project-owner approved. AE-09 through AE-11 are Phase 0/MVP field-validation baselines, not production SLAs.
+- Android Edge Phase 0 skeleton is ready only within the approved bounded scope. Phase 1 local journey and production deployment remain blocked by AE-08 production transport/TLS, controlled publication and required target-device/security evidence.
