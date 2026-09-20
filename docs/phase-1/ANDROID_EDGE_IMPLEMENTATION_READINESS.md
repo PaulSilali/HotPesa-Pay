@@ -17,18 +17,18 @@ worker stack must not run on the conductor phone.
 
 | Prerequisite | Classification | Current boundary / next required decision |
 | --- | --- | --- |
-| Android device matrix | DECISION REQUIRED | Approve pilot devices, manufacturers and hotspot capability evidence. |
-| Minimum Android OS/API level | DECISION REQUIRED | Select supported API floor after device matrix and security compatibility review. |
-| Embedded persistence choice | DECISION REQUIRED | ADR-008 permits Room/SQLite or equivalent; select technology, schema/versioning and retention through controlled design. |
-| Local edge API contract | DECISION REQUIRED | Define versioned Passenger-PWA-to-edge operations, errors, session expiry and authorization in DMAC/contracts. |
-| Edge/cloud synchronization contract | DECISION REQUIRED | Define event identities, ordering, idempotency, conflict handling, server acceptance and recovery. |
+| Android device matrix | RECOMMENDED FOR APPROVAL | Capability-based matrix with API 29 minimum and API 31+ preferred; qualified devices and field evidence remain required. |
+| Minimum Android OS/API level | RECOMMENDED FOR APPROVAL | API 29 minimum runtime; API 31+ preferred deployment generation, subject to lifecycle/security validation. |
+| Embedded persistence choice | RECOMMENDED FOR APPROVAL | Room over SQLite; encryption, schema/versioning and retention remain controlled design decisions. |
+| Local edge API contract | RECOMMENDED FOR APPROVAL | Narrow versioned `/edge/v1` Passenger-PWA API; exact DMAC/contracts remain required. |
+| Edge/cloud synchronization contract | RECOMMENDED FOR APPROVAL | Server-issued versioned datasets plus authenticated idempotent inbox/outbox; exact schema remains required. |
 | Authentication/device identity | DECISION REQUIRED | Define enrolled device identity, assignment/tenant scope, revocation and edge-to-cloud authentication. |
 | Local encryption | DECISION REQUIRED | Define data classification, encryption scope, key lifecycle and wipe/revocation behavior. |
 | Secret storage | READY | Provider credentials, callback secrets and production payment authority are not allowed on edge; implementation storage mechanics remain a security detail. |
 | Android lifecycle/restart handling | IMPLEMENTATION DETAIL | Design once persistence/outbox and OS floor are selected; prove restart and background behavior. |
 | Hotspot/network behavior | DECISION REQUIRED | Approve topology, local address/discovery and production TLS/HTTP model. |
 | Offline behavior | READY | Local non-financial journey discovery/display/selection and valid synchronized fare lookup are allowed; payment confirmation, settlement, provider reconciliation and confirmed revenue are not. |
-| Conflict/version handling | DECISION REQUIRED | Specify stale route/fare/session behavior, revocation and authoritative server conflict rules. |
+| Conflict/version handling | RECOMMENDED FOR APPROVAL | Immutable/versioned IDs, central revocation/closure wins, idempotent replay and unavailable-on-stale behavior. |
 | Software update strategy | DECISION REQUIRED | Define signed release, rollout, rollback, support window and minimum-version policy. |
 | Telemetry/observability | DECISION REQUIRED | Define health, storage, sync and security telemetry with privacy/redaction limits. |
 | Field concurrency target | DECISION REQUIRED | Product/Operations must set measured passenger concurrency acceptance criteria. |
@@ -74,9 +74,12 @@ implemented or authorized. Trusted central provider evidence remains the sole pa
 
 ## Required evidence before Android implementation begins
 
-1. Approved device matrix and minimum OS/API level.
+1. Approved capability matrix and minimum OS/API level, then qualified devices.
 2. Approved DMAC/contracts for local edge API and edge/cloud synchronization.
 3. Security approval of local transport, encryption, Keystore, identity and secret boundaries.
 4. Product/Operations acceptance targets for concurrency and endurance.
 5. Target-device proof of hotspot stability, restart/lifecycle, recovery, battery/thermal,
    multi-passenger and offline/online transition behavior.
+
+See `ANDROID_EDGE_PREREQUISITE_BATCH_1.md` for the recommendation rationale, data boundary,
+proposed `/edge/v1` API, synchronization and offline contract.

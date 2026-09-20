@@ -127,3 +127,9 @@ Still pending or blocked:
 - Physical PC-hosted hotspot/local-network proof is recorded in `docs/phase-1/SPRINT_5_FIELD_CONNECTIVITY_RECORD.md`: API and Passenger PWA reachability, active journey resolution, Westlands destination selection and server quote (KES 80.00), payment initiation, trusted Mock M-Pesa confirmation, reconnect, and trip-close invalidation all passed.
 - This does not establish Android hosting. The project owner approved the hybrid edge/cloud boundary: an Android-native companion edge may provide bounded local journey/session functions and synchronized non-financial data, while the existing NestJS/PostgreSQL/Redis/BullMQ/worker stack remains central and must not be deployed in full on the phone. Android implementation remains gated by the readiness checklist, device matrix, security decisions and field validation.
 - Multi-passenger behavior and no-internet local journey were not tested. This evidence is not Phase 1 acceptance, production readiness, live M-Pesa proof or implementation authority for ADR-002.
+
+## Android edge prerequisite Batch 1 (2026-09-20)
+
+- Documentation recommendations are recorded for an API 29 minimum Android runtime, API 31+ preferred deployment generation, Room-over-SQLite persistence, a narrow `/edge/v1` Passenger-PWA API, and server-issued versioned datasets with an idempotent non-financial inbox/outbox pattern.
+- These are **Recommended for approval**, not implementation evidence. Device qualification, exact DMAC contracts, transport/encryption/device-identity/security decisions, concurrency/endurance targets and target-device field proof remain prerequisites.
+- No Android code, embedded database, local edge API, synchronization runtime, controlled DOCX source, provider credential or payment authority was introduced.
