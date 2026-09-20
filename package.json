@@ -16,6 +16,12 @@
     "verify:discovery": "node scripts/verify-discovery.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "local:journey-url": "node scripts/print-local-journey-url.mjs",
+    "dev": "node scripts/dev-stack.mjs stack",
+    "dev:infra": "node scripts/dev-stack.mjs infra",
+    "dev:api": "node scripts/dev-stack.mjs api",
+    "dev:worker": "node scripts/dev-stack.mjs worker",
+    "dev:passenger": "node scripts/dev-stack.mjs passenger",
+    "dev:stop": "node scripts/dev-stack.mjs stop",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {

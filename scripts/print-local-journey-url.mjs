@@ -1,3 +1,7 @@
+import { loadDevelopmentEnvironment } from './development-env.mjs';
+
+loadDevelopmentEnvironment();
+
 const [publicCode] = process.argv.slice(2);
 const host = process.env.HOTPESA_LOCAL_HOST ?? '127.0.0.1';
 const port = process.env.HOTPESA_PWA_PORT ?? '4173';
