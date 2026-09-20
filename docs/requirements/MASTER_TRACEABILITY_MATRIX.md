@@ -79,6 +79,12 @@ until the formal DOCX publication process runs.
 | --- | --- | --- | --- | --- |
 | Non-financial Android edge runtime skeleton | BR-JRN-001–002; BR-OPS-001–005; FR-JRN-004/008; FR-OFF-001–003; SEC-DEV-001–008; NFR-MOB-001–008 | ADR-001/002/004/007/008/011; `ANDROID_EDGE_PREREQUISITE_BATCH_4.md` AE-01–07; `ANDROID_EDGE_PHASE_0_IMPLEMENTATION.md` | `apps/android-host`: API 29 configuration, Room metadata schema v1, Keystore identity abstraction, development-only `/edge/v1/health`, lifecycle JVM tests and Android instrumentation-test foundation; local Gradle build/test/lint evidence | Implemented and JVM-tested locally. Emulator/physical Room/Keystore proof, production transport, concrete DB encryption, local authorization, sync and field lifecycle evidence remain blocked/deferred. |
 
+## Playwright journey isolation evidence
+
+| Outcome | Requirements | Implementation evidence | Test evidence | State |
+| --- | --- | --- | --- | --- |
+| Deterministic Passenger journey/payment browser flow | FR-JRN-004/008/009; FR-PAX-001/005/006; FR-FAR-001/002; FR-PAY-001/007–010; FR-OFF-002/003 | `playwright.config.ts` pins API, Passenger PWA and admin web to loopback and uses the non-persistent in-memory test store, isolating browser tests from local hotspot overrides and PostgreSQL state | `pnpm test:e2e`: 4/4 passed on 2026-09-20, including KES 80.00 fare quote, trusted Mock M-Pesa outcomes and trip-close invalidation | Tested locally; production/LAN configuration unchanged |
+
 ## Phase 1 Sprint 5 physical hotspot evidence
 
 | Outcome | Requirements | Implementation evidence | Physical evidence | State |
