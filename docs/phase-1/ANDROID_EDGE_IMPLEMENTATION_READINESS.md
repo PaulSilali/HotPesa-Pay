@@ -87,3 +87,4 @@ See `ANDROID_EDGE_PREREQUISITE_BATCH_2.md` for Batch 2 identity, encryption, tra
 update, telemetry and device-loss recommendations.
 See `ANDROID_EDGE_PREREQUISITE_BATCH_3.md` for proposed schemas, replay/conflict semantics,
 fare validity, field qualification bands and remaining acceptance gates.
+See `ANDROID_EDGE_PREREQUISITE_BATCH_4.md` for the consolidated approval package and phased implementation gate.

@@ -143,3 +143,8 @@ Still pending or blocked:
 
 - Proposed `/edge/v1` schemas, stable error codes, versioned synchronization envelopes, replay/conflict rules, fare-validity and central payment-handoff boundaries are documented for controlled DMAC review.
 - Concurrency, latency, endurance, charging, thermal, storage/retention and offline-duration values remain Product/Operations decisions and field-evidence gates; no implementation is claimed.
+
+## Android edge prerequisite Batch 4 (2026-09-20)
+
+- Batches 1–3 are consolidated into an explicit project-owner approval package. Production local transport remains a Security decision; operational targets are proposed rather than approved.
+- A future approved Phase 0 skeleton is limited to scaffold, API configuration, Room/Keystore boundaries, local health and tests; it excludes sync, payments and provider credentials.
