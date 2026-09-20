@@ -161,3 +161,9 @@ Still pending or blocked:
 - Room schema v1 contains non-financial metadata only. A Keystore device-signing abstraction and encrypted-database key-reference boundary exist; no raw key is stored or exposed, and concrete database encryption is not claimed.
 - Room and Android Keystore instrumentation tests are present but **not executed**: `adb devices` found no emulator or physical device. Android foreground/background endurance, hotspot, concurrency and physical device evidence remain field-validation work.
 - No payment, provider credential/evidence, reconciliation, confirmed-revenue, financial persistence, synchronization, local journey/fare endpoint, production TLS or enrolment/revocation functionality was introduced. Central HotPesa remains authoritative. See `docs/phase-1/ANDROID_EDGE_PHASE_0_IMPLEMENTATION.md`.
+
+## Android edge Phase 0 runtime-validation attempt (2026-09-20)
+
+- Host tooling is available: Temurin JDK 17.0.20.1, Gradle 8.9, Android SDK platforms 29/35, Build Tools 34.0.0–37.0.0 and ADB 37.0.1. Debug/release APK assembly, JVM tests, lint and instrumentation-APK compilation passed.
+- `adb devices -l` reported no attached device and `emulator -list-avds` reported no configured AVD. Therefore `DEVICE_RUNTIME_VALIDATION=BLOCKED`; no APK install/launch, Room runtime, Android Keystore runtime, health-HTTP or Android lifecycle result is claimed.
+- Backup/device-transfer exclusion is statically validated through the manifest and XML rules. An authorized device or configured AVD is required for the remaining runtime and instrumentation evidence; this does not authorize Android Edge Phase 1 or production deployment.

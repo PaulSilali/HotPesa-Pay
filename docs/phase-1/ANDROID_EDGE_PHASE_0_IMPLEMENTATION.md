@@ -40,6 +40,26 @@ The instrumentation suite contains Room creation/read/write/schema-version cover
 Android Keystore create/reload/sign/verify coverage. It is **not executed** until an emulator
 or authorised device is available; JVM tests are not represented as device-Keystore proof.
 
+## Emulator / physical-device validation attempt (2026-09-20)
+
+This validation pass found a usable host toolchain but no Android runtime: `adb devices -l`
+reported no attached devices and `emulator -list-avds` reported no configured AVD. The
+following host-side evidence was obtained without altering the application boundary:
+
+| Check | Result | Evidence boundary |
+| --- | --- | --- |
+| Toolchain | PASS | Temurin JDK 17.0.20.1, Gradle 8.9, Android SDK platforms 29 and 35, Build Tools 34.0.0–37.0.0 and ADB 37.0.1 are available. |
+| Debug and release APKs | PASS | `gradlew.bat assembleDebug assembleRelease` completed successfully. |
+| JVM tests | PASS | `gradlew.bat test` completed successfully for debug and release variants. |
+| Lint | PASS | `gradlew.bat lint` completed successfully; no lint errors. |
+| Instrumentation APK | PASS (compiled only) | `gradlew.bat assembleDebugAndroidTest` completed successfully; no instrumentation test was executed. |
+| Backup/device-transfer exclusion | STATIC VALIDATION PASS | Manifest disables backup and references rules excluding database, shared preferences, file and external storage from cloud backup and device transfer. |
+
+`DEVICE_RUNTIME_VALIDATION=BLOCKED`: no ADB-visible physical device, running emulator or
+available AVD exists in this environment. Consequently APK install/launch, Room runtime,
+Android Keystore runtime, HTTP `200` evidence and start/stop/restart lifecycle on Android
+remain unverified. This is not represented as a passing device validation.
+
 ## Security and scope review
 
 - No provider credentials, M-Pesa logic, payment confirmation, reconciliation, settlement,
