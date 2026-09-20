@@ -133,3 +133,8 @@ Still pending or blocked:
 - Documentation recommendations are recorded for an API 29 minimum Android runtime, API 31+ preferred deployment generation, Room-over-SQLite persistence, a narrow `/edge/v1` Passenger-PWA API, and server-issued versioned datasets with an idempotent non-financial inbox/outbox pattern.
 - These are **Recommended for approval**, not implementation evidence. Device qualification, exact DMAC contracts, transport/encryption/device-identity/security decisions, concurrency/endurance targets and target-device field proof remain prerequisites.
 - No Android code, embedded database, local edge API, synchronization runtime, controlled DOCX source, provider credential or payment authority was introduced.
+
+## Android edge prerequisite Batch 2 (2026-09-20)
+
+- Security recommendations now cover app-issued device identity bound to Keystore keys, central revocation, encrypted local persistence, restricted local authorization, managed updates and minimized telemetry.
+- Production local TLS/HTTP, enrollment ownership, credential lifecycle, encryption implementation, retention/wipe and rooted-device policy remain decisions; no Android code or controlled DOCX change is claimed.

@@ -22,8 +22,8 @@ worker stack must not run on the conductor phone.
 | Embedded persistence choice | RECOMMENDED FOR APPROVAL | Room over SQLite; encryption, schema/versioning and retention remain controlled design decisions. |
 | Local edge API contract | RECOMMENDED FOR APPROVAL | Narrow versioned `/edge/v1` Passenger-PWA API; exact DMAC/contracts remain required. |
 | Edge/cloud synchronization contract | RECOMMENDED FOR APPROVAL | Server-issued versioned datasets plus authenticated idempotent inbox/outbox; exact schema remains required. |
-| Authentication/device identity | DECISION REQUIRED | Define enrolled device identity, assignment/tenant scope, revocation and edge-to-cloud authentication. |
-| Local encryption | DECISION REQUIRED | Define data classification, encryption scope, key lifecycle and wipe/revocation behavior. |
+| Authentication/device identity | RECOMMENDED FOR APPROVAL | Opaque app-issued device ID bound to Keystore keypair; enrollment workflow approval remains open. |
+| Local encryption | RECOMMENDED FOR APPROVAL | Keystore-wrapped key plus Room-compatible full-database encryption; implementation detail remains open. |
 | Secret storage | READY | Provider credentials, callback secrets and production payment authority are not allowed on edge; implementation storage mechanics remain a security detail. |
 | Android lifecycle/restart handling | IMPLEMENTATION DETAIL | Design once persistence/outbox and OS floor are selected; prove restart and background behavior. |
 | Hotspot/network behavior | DECISION REQUIRED | Approve topology, local address/discovery and production TLS/HTTP model. |
@@ -83,3 +83,5 @@ implemented or authorized. Trusted central provider evidence remains the sole pa
 
 See `ANDROID_EDGE_PREREQUISITE_BATCH_1.md` for the recommendation rationale, data boundary,
 proposed `/edge/v1` API, synchronization and offline contract.
+See `ANDROID_EDGE_PREREQUISITE_BATCH_2.md` for Batch 2 identity, encryption, transport,
+update, telemetry and device-loss recommendations.
