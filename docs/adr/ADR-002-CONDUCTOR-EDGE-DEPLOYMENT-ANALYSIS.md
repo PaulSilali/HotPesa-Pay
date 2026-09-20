@@ -112,4 +112,8 @@ This recommendation follows ADR-001's hybrid pattern, ADR-004's cloud payment tr
 
 ## Validation before implementation authorization
 
-Human approval of ADR-002 and ADR-008, controlled DMAC synchronization, security review, approved device matrix, and target-device field evidence are required. This analysis does not authorize implementation, production hosting, production provider selection, live M-Pesa use or alteration of controlled DOCX sources.
+The project owner has approved the ADR-002/ADR-008 architecture boundary for bounded
+implementation. Controlled DMAC synchronization, security review, approved device matrix,
+minimum OS/API level, and target-device field evidence remain required before Android
+implementation begins. This analysis does not authorize production hosting, production
+provider selection, live M-Pesa use or alteration of controlled DOCX sources.

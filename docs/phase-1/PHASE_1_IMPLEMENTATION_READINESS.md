@@ -14,11 +14,17 @@ This is not a claim of Phase 1 completion or production readiness.
 | Payment association | READY | Phase 0 already links payment attempts to journey, amount, currency and fare version and has trusted-evidence/idempotency behavior. Trip ID and destination/stage linkage follow the approved domain contract. |
 | Trip closure | READY | Conductor closes; SACCO Operations may override; unresolved close requires reason and preserves late evidence. |
 | Trip summary | READY | State counts, confirmed amount, payment-attempt count and exception count; cash/refund/reversal excluded. |
+| Android companion edge | BLOCKED | ADR-002/ADR-008 project-owner architecture approvals are recorded, but device matrix, OS floor, encrypted persistence, edge API/sync contracts, device identity, local transport security and field acceptance criteria remain unresolved. |
 
 ## Approval record
 
 The project owner approved all nine Phase 1 implementation decisions. The exact approved
 wording is recorded in `PHASE_1_APPROVED_DECISIONS.md`.
+
+The project owner also approved the ADR-002 hybrid edge/cloud boundary and ADR-008
+Passenger PWA baseline. This opens documentation and constrained design preparation only;
+it does not open Android implementation before the readiness gates in
+`ANDROID_EDGE_IMPLEMENTATION_READINESS.md` are resolved.
 
 ## Proposed synchronization changes after answers
 
