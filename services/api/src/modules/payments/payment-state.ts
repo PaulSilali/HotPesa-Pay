@@ -20,7 +20,9 @@ export function transitionPayment(
   let current = previous;
 
   if (previous === 'review-required') {
-    return { previous, current, changed: false, requiresReview: true };
+    if (signal === 'provider-confirmed') current = 'confirmed';
+    else if (signal === 'provider-failed') current = 'failed';
+    return { previous, current, changed: current !== previous, requiresReview: current === 'review-required' };
   }
 
   if (signal === 'initiation-requested' && previous === 'created') {

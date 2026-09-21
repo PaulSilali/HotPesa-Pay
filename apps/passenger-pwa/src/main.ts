@@ -4,6 +4,7 @@ import type { JourneySessionV1, MockPaymentScenario, PaymentAttemptV1 } from '@h
 import { ApiError, HotPesaApi } from './api.js';
 import { paymentStatusView } from './payment-status.js';
 import { sessionCodeFromLocation } from './session-code.js';
+import { createIdempotencyKey } from './idempotency-key.js';
 
 const app = requiredElement<HTMLElement>('#app');
 
@@ -50,11 +51,6 @@ async function loadJourney(): Promise<void> {
 }
 
 function renderJourney(journey: JourneySessionV1): void {
-  const amount = new Intl.NumberFormat('en-KE', {
-    style: 'currency',
-    currency: journey.fare.currency,
-  }).format(journey.fare.amountMinor / 100);
-
   journeyRoot.removeAttribute('aria-busy');
   journeyRoot.innerHTML = `
     <div class="payment-layout">
@@ -69,13 +65,19 @@ function renderJourney(journey: JourneySessionV1): void {
             <div><dt>Fare version</dt><dd>${escapeHtml(journey.fare.fareVersionId)}</dd></div>
           </dl>
         </div>
-        <div class="fare-block"><span>Fixed fare</span><strong>${amount}</strong></div>
+        <div class="fare-block"><span>Approved fare</span><strong id="quoted-fare">Select a destination</strong></div>
       </section>
       <section class="pay-card" aria-labelledby="payment-heading">
         <p class="section-label">Mock M-Pesa</p>
         <h2 id="payment-heading">Request a sandbox prompt</h2>
         <p class="helper">Use synthetic Kenyan-format data only. A request is not proof of payment.</p>
         <form id="payment-form" novalidate>
+          <label for="destination-stage">Destination</label>
+          <select id="destination-stage" name="destinationStageId" required>
+            <option value="">Select destination</option>
+            ${(journey.route?.directions[0]?.stages ?? []).map((stage) => `<option value="${escapeHtml(stage.id)}">${escapeHtml(stage.name)}</option>`).join('')}
+          </select>
+          <p class="field-help" id="fare-quote">Select a destination to obtain the server-calculated fare.</p>
           <label for="phone-number">Sandbox phone number</label>
           <input id="phone-number" name="phoneNumber" type="tel" inputmode="tel" autocomplete="tel"
             value="+254700000001" pattern="\\+254(7|1)[0-9]{8}" aria-describedby="phone-help" required />
@@ -88,7 +90,7 @@ function renderJourney(journey: JourneySessionV1): void {
             <option value="duplicate-callback">Duplicate callback</option>
             <option value="missing-callback">Missing callback</option>
           </select>
-          <button class="primary-button" type="submit">Pay ${amount}</button>
+          <button class="primary-button" type="submit" disabled>Choose a destination</button>
         </form>
         <div id="payment-status" class="status-region" aria-live="polite" aria-atomic="true"></div>
       </section>
@@ -97,6 +99,24 @@ function renderJourney(journey: JourneySessionV1): void {
 
   const form = document.querySelector<HTMLFormElement>('#payment-form');
   form?.addEventListener('submit', (event) => void submitPayment(event, journey));
+  form?.querySelector<HTMLSelectElement>('#destination-stage')?.addEventListener('change', (event) => void quoteDestination(event, journey, form));
+}
+
+async function quoteDestination(event: Event, journey: JourneySessionV1, form: HTMLFormElement): Promise<void> {
+  const destinationStageId = (event.currentTarget as HTMLSelectElement).value;
+  const quoteRoot = requiredElement<HTMLElement>('#fare-quote');
+  const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+  if (!destinationStageId) return;
+  quoteRoot.textContent = 'Calculating approved fare…';
+  if (submit) submit.disabled = true;
+  try {
+    const quote = await api.quote(journey.publicCode, destinationStageId);
+    form.dataset.quoteAmountMinor = String(quote.amountMinor);
+    quoteRoot.textContent = `Approved fare: ${new Intl.NumberFormat('en-KE', { style: 'currency', currency: quote.currency }).format(quote.amountMinor / 100)}.`;
+    const fare = document.querySelector<HTMLElement>('#quoted-fare');
+    if (fare) fare.textContent = new Intl.NumberFormat('en-KE', { style: 'currency', currency: quote.currency }).format(quote.amountMinor / 100);
+    if (submit) { submit.disabled = false; submit.textContent = 'Request sandbox prompt'; }
+  } catch (error) { quoteRoot.textContent = errorMessage(error); }
 }
 
 async function submitPayment(event: SubmitEvent, journey: JourneySessionV1): Promise<void> {
@@ -107,14 +127,17 @@ async function submitPayment(event: SubmitEvent, journey: JourneySessionV1): Pro
   const data = new FormData(form);
   const phoneNumber = String(data.get('phoneNumber') ?? '');
   const scenario = String(data.get('scenario') ?? '') as MockPaymentScenario;
+  const destinationStageId = String(data.get('destinationStageId') ?? '');
+  const quotedAmountMinor = Number(form.dataset.quoteAmountMinor ?? 0);
+  if (!destinationStageId || !form.dataset.quoteAmountMinor) return;
   setFormDisabled(form, true);
   if (submit) submit.textContent = 'Requesting prompt…';
   renderStatus({ status: 'initiating' });
 
   try {
     let payment = await api.initiate(
-      { journeySessionId: journey.id, phoneNumber, scenario },
-      crypto.randomUUID(),
+      { journeySessionId: journey.id, destinationStageId, phoneNumber, scenario },
+      createIdempotencyKey(),
     );
     renderStatus(payment);
     payment = await pollUntilSettled(payment);
@@ -123,7 +146,7 @@ async function submitPayment(event: SubmitEvent, journey: JourneySessionV1): Pro
     renderRequestError(errorMessage(error));
   } finally {
     setFormDisabled(form, false);
-    if (submit) submit.textContent = `Pay ${new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(journey.fare.amountMinor / 100)}`;
+    if (submit) submit.textContent = `Pay ${new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(quotedAmountMinor / 100)}`;
   }
 }
 
@@ -177,7 +200,10 @@ function setFormDisabled(form: HTMLFormElement, disabled: boolean): void {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Check that the local HotPesa API is running, then try again.';
+  if (error instanceof ApiError) return error.message;
+  if (error instanceof TypeError) return 'The local HotPesa service could not be reached. Check the network connection and try again.';
+  if (error instanceof Error) return 'The passenger page could not complete that action. Refresh the page and try again.';
+  return 'The passenger page could not complete that action. Try again.';
 }
 
 function escapeHtml(value: string): string {

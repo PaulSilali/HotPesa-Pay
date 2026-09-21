@@ -11,15 +11,23 @@ responsible authority; no row is marked accepted because that evidence is absent
 | Idempotent payment-attempt creation | BR-PAY-003–004; PR-PAY-001–002 | FR-PAY-001–004 | US-PAY-001; US-PAX-006; UC-PAY-001 | SEC-API-001; NFR-REL-001 | ADR-015 (Accepted implementation baseline); ADR-016 (Accepted with strict scope) | `payments.service.ts`; `payment.store.ts`; versioned contracts | `payments.service.test.ts`; `postgres.durability.test.ts` replay and collision tests | Implemented and tested in memory and live PostgreSQL; production validation not started |
 | Trusted evidence is the sole confirmation authority | BR-PAY-005–006, BR-PAY-010; PR-PAY-004–006 | FR-PAY-007–010, FR-PAY-013 | US-PAX-007–009; US-PAY-002–004; UC-PAY-001 | SEC-PAY-001–009; NFR-REL-001 | ADR-004 (Accepted architecture baseline); ADR-005 (Accepted and implemented in Phase 0); ADR-016 (Accepted with strict scope) | `payment-state.ts`; `mock-mpesa.provider.ts` | `payment-state.test.ts`; `http.integration.test.ts`; `e2e/payment-flow.spec.ts` | Implemented and tested locally; not production validated |
 | Duplicate, late and conflicting evidence | BR-PAY-007, BR-PAY-009; PR-PAY-005–006 | FR-PAY-012–014; FR-REC-003–006, FR-REC-011 | US-PRV-001–002; UC-PRV-001; UC-REC-002 | SEC-PAY-004–009; NFR-REL-001 | ADR-005; ADR-015; ADR-016 | `payments.service.ts`; `payment.store.ts` | Unit/HTTP/E2E duplicate and conflict cases; live PostgreSQL duplicate/restart test | Implemented and tested locally; production restore validation not started |
-| Missing-callback reconciliation and expiry | BR-PAY-008–010; PR-PAY-007–008 | FR-PAY-011–013; FR-REC-007–009 | US-REC-001–003; UC-REC-001 | SEC-PAY-006–009; NFR-AVAIL-001 | ADR-005; ADR-011 (Recommended for approval); ADR-016 | Manual development reconciliation/expiry endpoints | `payments.service.test.ts` missing callback, expiry and late evidence | Manual reconciliation tested; scheduled retries not started |
+| Missing-callback reconciliation and expiry | BR-PAY-008–010; PR-PAY-007–008 | FR-PAY-011–013; FR-REC-007–009 | US-REC-001–003; UC-REC-001 | SEC-PAY-006–009; NFR-AVAIL-001 | ADR-005; ADR-011 (Recommended for approval); ADR-016; OD-FRS-004 | Bounded Redis/BullMQ scheduling and worker execution, PostgreSQL-backed payment state, manual reconciliation and late trusted evidence | `payments.service.test.ts`; `reconciliation-policy.test.ts`; `reconciliation.live.integration.test.ts` (live PostgreSQL + Redis) | Development Redis intentionally has no persistence; Redis container recreation is not a queue-durability guarantee. Retry exhaustion is `review-required`, not expiry. |
 | Redacted audit and administrative visibility | BR-GOV-002–004; BR-ADM-003–005; PR-SEC-003–004 | FR-RPT-001–008; FR-REC-002, FR-REC-012 | US-SEC-001–004; US-RPT-001–003; UC-RPT-001 | SEC-DATA-001–006; SEC-LOG-001–006; PRIV-MIN-001–004 | ADR-005; ADR-012 (Recommended for approval) | `audit.service.ts`; admin controllers/views | Service and HTTP redaction checks; Playwright full-phone absence | Implemented and tested with synthetic data; privacy approval pending |
 | Accountless responsive passenger flow | BR-PAX-001–006; PR-PAX-001–010 | FR-PAX-001–016 | US-PAX-001–010; UC-PAX-001; UC-PAY-001 | NFR-ACC-001–008; PRIV-MIN-001–004 | ADR-003 (Recommended for approval); ADR-014 (Accepted implementation baseline) | `apps/passenger-pwa`; shared design tokens | Passenger unit tests and Playwright viewport, focus-target and reduced-motion checks | Implemented and tested locally; device matrix deferred |
 | Admin Phase 0 view | BR-OPS-001; BR-ADM-003; PR-PAY-009; PR-SEC-003–004 | FR-FIN-001–004; FR-RPT-001–008 | US-FIN-001–004; US-RPT-001–003 | SEC-AUTHZ-001–008; SEC-LOG-001–006 | ADR-006 (Accepted implementation baseline); ADR-014 | `apps/admin-web`; development-only API routes | Admin unit test and Playwright audit/payment view | Implemented for local demo; authentication/authorization not started |
 | PostgreSQL authoritative persistence | BR-PAY-003–009; PR-PAY-001–008 | FR-PAY-001–016; FR-REC-001–012 | UC-PAY-001; UC-PRV-001; UC-REC-001–002 | NFR-REL-001–008; NFR-BCK-001–003; NFR-DR-001–003 | ADR-007 (Accepted implementation baseline) | PostgreSQL store path and development Compose definition | `services/api/test/postgres.durability.test.ts`: live application-store restart, persistence, idempotency, duplicate-event stability and redaction | Implemented and tested locally; backup/restore and production validation not started |
 | Redis-backed asynchronous work | BR-PAY-008; PR-OPS-001 | FR-REC-007–009 | US-REC-001–003 | NFR-AVAIL-001–006; NFR-OPS-001–008 | ADR-011 (Recommended for approval) | Redis development service definition only | Development Redis reached healthy state and returned `PONG`; no job behavior test exists | Runtime service health tested; asynchronous work not started; ADR approval pending |
-| Android host/hotspot/session | BR-JRN-001–002; BR-OPS-001–005; PR-JRN-001–008 | FR-JRN-001–012 | US-JRN-001–010; UC-JRN-001–002; UC-OFF-001 | SEC-DEV-001–008; NFR-MOB-001–008 | ADR-001 (Recommended); ADR-002 (Decision required); ADR-008 (Recommended) | Placeholder README only | No target-device or hotspot tests | Not started; decision and physical-device evidence required |
+| Android host/hotspot/session | BR-JRN-001–002; BR-OPS-001–005; PR-JRN-001–008 | FR-JRN-001–012 | US-JRN-001–010; UC-JRN-001–002; UC-OFF-001 | SEC-DEV-001–008; NFR-MOB-001–008 | ADR-001 (Recommended); ADR-002 (Decision required; P1-DEC-010 approved for bounded implementation); ADR-008 (Recommended; project-owner PWA/edge boundary approved) | PC-hosted field proof, ADR analysis and Batch 1–4 owner decision package | `SPRINT_5_FIELD_CONNECTIVITY_RECORD.md`; `ANDROID_EDGE_IMPLEMENTATION_READINESS.md`; `ANDROID_EDGE_PREREQUISITE_BATCH_4.md` | Phase 0 skeleton authorized by project owner; AE-08 production transport/TLS, controlled publication and field evidence block Phase 1/production |
 | Workforce identity and tenant authorization | BR-GOV-003; PR-SEC-001–002 | FR-AUTH-001–012; FR-ADM-001–009 | US-ADM-001–006; UC-ADM-001 | SEC-IAM-001–012; PRIV-MIN-001–004 | ADR-010 (Recommended); ADR-017 (Decision required) | No production-like identity integration | No identity/tenant-isolation acceptance evidence | Not started; decision required |
 | Production provider and hosting | BR-PIL-001–006; PR-OPS-003 | Provider-specific details remain gated | Applicable production use cases deferred | SEC-PAY-001–009; NFR-DR-001–003; PRIV-XFER-001–004 | ADR-017 and ADR-018 (Decision required) | None; Mock adapter only | No Daraja/live/provider/region evidence | Deferred and blocked by external decisions |
+
+## Phase 1 implementation evidence
+
+| Outcome | Requirements | ADRs | Implementation evidence | Test evidence | State |
+| --- | --- | --- | --- | --- | --- |
+| Assigned trip route/stage foundation | FR-JRN-001/003; FR-ADM-003; FR-PAX-005; US-CON-001; US-OPS-001/002 | ADR-001; ADR-002; ADR-006 | `services/api/src/modules/journeys/journey.service.ts`; `packages/contracts/src/index.ts` | `journey.service.test.ts`; `http.integration.test.ts` | Implemented and tested locally with synthetic assignment; controlled publication pending |
+| Server-side destination fare quote | FR-FAR-001/002/006/007/009; FR-PAX-005/006; US-PAX-003/004; US-FAR-003/004 | ADR-009 | `services/api/src/modules/fares/fare.service.ts`; `fares.controller.ts`; versioned contracts | `fare.service.test.ts`; `http.integration.test.ts` | Implemented and tested locally with synthetic route/fare data; controlled publication pending |
+| Trip-linked payment and closure summary | FR-PAY-001/006/009; FR-JRN-009/010; FR-RPT-001/002; US-CON-004/008; US-FIN-005 | ADR-005; ADR-009; ADR-015 | `payments.service.ts`; `payment.store.ts`; `journey.service.ts`; trip payment/closure controllers | `http.integration.test.ts`; existing payment idempotency and callback tests | Implemented and tested locally; PostgreSQL restart coverage for trip metadata and close summary remains to be added |
 
 ## Controlled conflict
 
@@ -27,6 +35,21 @@ Document 05 TRD section 26 assigns ADR-001 through ADR-012 to a different set of
 decisions than Document 11. ADR references in this matrix use Document 11 and retain its
 statuses. The Architecture Review Board must resolve the numbering conflict before the
 controlled drafts can be approved.
+
+## Phase 1 decision synchronization
+
+The project owner approved the nine Phase 1 implementation decisions recorded in
+`docs/phase-1/PHASE_1_APPROVED_DECISIONS.md`. These are implementation authority for the
+bounded Phase 1 slice, but the checksum-bound controlled Markdown copies remain unchanged
+until the formal DOCX publication process runs.
+
+| Decision scope | Requirements | Governing ADRs | Decision evidence | State |
+| --- | --- | --- | --- | --- |
+| Workforce identity and tenant authorization | FR-JRN-001; FR-ADM-003; SEC-AUTHZ-001; SEC-IAM-*; SEC-DEV-001 | ADR-017; TRD AP-006 | `PHASE_1_APPROVED_DECISIONS.md` P1-DEC-001/002 | Approved for bounded implementation; controlled sync pending; named provider not selected |
+| Assignment and trip start | FR-JRN-001/003; FR-ADM-003; US-CON-001; US-OPS-002 | ADR-001; ADR-002; ADR-006 | `PHASE_1_APPROVED_DECISIONS.md` P1-DEC-003 | Approved for bounded implementation; controlled sync pending |
+| Fare creation, approval and effective versions | FR-FAR-001/002/004/005/006–008; US-FAR-001–004; PR-FAR-003 | ADR-009 | `PHASE_1_APPROVED_DECISIONS.md` P1-DEC-004/005/006 | Approved for bounded implementation; controlled sync pending |
+| Trip closure and summary | FR-JRN-009/010; FR-RPT-001/002; US-CON-008/009; US-FIN-005; US-RPT-001 | ADR-005; ADR-009 | `PHASE_1_APPROVED_DECISIONS.md` P1-DEC-007/008/009 | Approved for bounded implementation; controlled sync pending |
+| Conductor edge deployment boundary | BR-JRN-001–002; FR-JRN-001–012; FR-OFF-002/003; SEC-DEV-001–008; NFR-MOB-001–008 | ADR-001; ADR-002; ADR-004; ADR-007; ADR-008; ADR-011 | `PHASE_1_APPROVED_DECISIONS.md` P1-DEC-010; `ADR-002-CONDUCTOR-EDGE-DEPLOYMENT-ANALYSIS.md` | Approved for bounded implementation; controlled sync, security review and target-device validation pending |
 
 ## State vocabulary
 
@@ -36,3 +59,34 @@ controlled drafts can be approved.
 - **Deferred:** intentionally outside the current Phase 0 proof or awaiting its approved gate.
 - **Blocked:** evidence cannot be produced until a named runtime or external decision is available.
 - **Not started:** no conforming implementation evidence exists.
+
+## Phase 1 Sprint 2 evidence
+
+| Outcome | Requirements | ADRs | Implementation evidence | Test evidence | State |
+| --- | --- | --- | --- | --- | --- |
+| Formal migrations and workforce assignment authorization | FR-JRN-001/003; FR-ADM-003; SEC-IAM-*; SEC-AUTHZ-001; SEC-DEV-001; US-CON-001; US-OPS-002 | ADR-017; TRD AP-006; ADR-001/002/006 | `services/api/src/persistence/migrations.ts`; `services/api/src/modules/authorization/workforce.service.ts`; `journey.service.ts` | `migrations.test.ts`; `workforce.authorization.test.ts`; journey and HTTP regression suites | Implemented and tested locally with deterministic synthetic fixtures; production IdP, tenant governance and controlled publication remain pending |
+
+## Phase 1 Sprint 3 transport evidence
+
+| Outcome | Requirements | Implementation evidence | Test / manual evidence | State |
+| --- | --- | --- | --- | --- |
+| Explicit trusted-LAN development binding | BR-JRN-001; PR-PAX-001; PR-JRN-003; FR-PAX-001; FR-JRN-004; FR-OFF-002 | API `HOST` and `CORS_ORIGINS`; PWA `VITE_HOST` configuration | API and PWA typechecks/build pass; physical test plan prepared | Implemented locally; physical Android/hotspot proof not executed |
+| Scoped passenger entry and payment truth boundary | FR-PAX-001/011; FR-OFF-002/003; US-PAX-001/013 | Existing PWA `/journey/<public-code>` flow and server-authoritative payment API | Existing API/payment tests pass | Existing bounded implementation; active-session lifecycle and physical transport proof remain pending |
+
+## Android Edge Phase 0 implementation evidence
+
+| Outcome | Requirements | ADRs / approval evidence | Implementation and test evidence | State |
+| --- | --- | --- | --- | --- |
+| Non-financial Android edge runtime skeleton | BR-JRN-001–002; BR-OPS-001–005; FR-JRN-004/008; FR-OFF-001–003; SEC-DEV-001–008; NFR-MOB-001–008 | ADR-001/002/004/007/008/011; `ANDROID_EDGE_PREREQUISITE_BATCH_4.md` AE-01–07; `ANDROID_EDGE_PHASE_0_IMPLEMENTATION.md` | `apps/android-host`: API 29 configuration, Room metadata schema v1, Keystore identity abstraction, development-only `/edge/v1/health`, lifecycle JVM tests and Android instrumentation-test foundation; 2026-09-20 Gradle debug/release, JVM, lint and instrumentation-APK compilation evidence | Implemented and JVM-tested locally; backup/device-transfer exclusion statically validated. `adb devices` and `emulator -list-avds` found no runtime, so emulator/physical Room/Keystore/HTTP/lifecycle proof remains blocked; production transport, concrete DB encryption, local authorization, sync and field lifecycle evidence remain blocked/deferred. |
+
+## Playwright journey isolation evidence
+
+| Outcome | Requirements | Implementation evidence | Test evidence | State |
+| --- | --- | --- | --- | --- |
+| Deterministic Passenger journey/payment browser flow | FR-JRN-004/008/009; FR-PAX-001/005/006; FR-FAR-001/002; FR-PAY-001/007–010; FR-OFF-002/003 | `playwright.config.ts` pins API, Passenger PWA and admin web to loopback and uses the non-persistent in-memory test store, isolating browser tests from local hotspot overrides and PostgreSQL state | `pnpm test:e2e`: 4/4 passed on 2026-09-20, including KES 80.00 fare quote, trusted Mock M-Pesa outcomes and trip-close invalidation | Tested locally; production/LAN configuration unchanged |
+
+## Phase 1 Sprint 5 physical hotspot evidence
+
+| Outcome | Requirements | Implementation evidence | Physical evidence | State |
+| --- | --- | --- | --- | --- |
+| PC-hosted local passenger payment flow | BR-JRN-001â€“002; BR-PAY-003â€“006; PR-JRN-001â€“008; PR-PAX-001â€“006; FR-JRN-004/009/010; FR-PAX-001/005/006; FR-FAR-001/002; FR-PAY-001/007â€“010; US-JRN-001â€“004; US-PAX-001â€“007 | Configuration-driven API/PWA bind, server-authoritative fare quote, payment state and trip-close invalidation | `SPRINT_5_FIELD_CONNECTIVITY_RECORD.md`: API/PWA reachability, active journey, Westlands KES 80.00 quote, payment initiation, trusted Mock M-Pesa confirmation, reconnect and close invalidation passed on a PC-hosted physical local network | Tested in the recorded PC-hosted field configuration; Android hosting, multi-passenger behavior and no-internet local journey remain not tested |

@@ -7,10 +7,13 @@ import type {
   ProviderEvidenceV1,
 } from '@hotpesa/contracts';
 import { Pool } from 'pg';
+import { runMigrations } from '../../persistence/migrations.js';
 
 export interface StoredPayment {
   readonly id: string;
   readonly journeySessionId: string;
+  readonly tripId?: string;
+  readonly destinationStageId?: string;
   readonly amountMinor: number;
   readonly currency: 'KES';
   readonly fareVersionId: string;
@@ -52,7 +55,7 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) throw new Error('DATABASE_URL is required when HOTPESA_STORE=postgres');
     this.pool = new Pool({ connectionString, max: 5 });
-    await this.createSchema();
+    await runMigrations(this.pool);
     await this.loadSnapshot();
   }
 
@@ -79,15 +82,17 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
     this.paymentIdByIdempotencyKey.set(payment.idempotencyKey, payment.id);
     this.queue(
       `INSERT INTO payment_attempts (
-        id, journey_session_id, amount_minor, currency, fare_version_id, status, scenario,
+        id, journey_session_id, trip_id, destination_stage_id, amount_minor, currency, fare_version_id, status, scenario,
         masked_phone_number, idempotency_key, request_fingerprint, provider_request_id,
         created_at, updated_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
       ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status,
         provider_request_id = EXCLUDED.provider_request_id, updated_at = EXCLUDED.updated_at`,
       [
         payment.id,
         payment.journeySessionId,
+        payment.tripId ?? null,
+        payment.destinationStageId ?? null,
         payment.amountMinor,
         payment.currency,
         payment.fareVersionId,
@@ -103,14 +108,19 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
     );
   }
 
-  recordProviderEvent(event: ProviderEvidenceV1): boolean {
+  async recordProviderEvent(event: ProviderEvidenceV1): Promise<boolean> {
     if (this.providerEventIds.has(event.eventId)) return false;
-    this.providerEventIds.add(event.eventId);
-    this.queue(
+    if (!this.pool) {
+      this.providerEventIds.add(event.eventId);
+      return true;
+    }
+    const inserted = await this.enqueue<{ event_id: string }>(
       `INSERT INTO provider_events (event_id, provider_request_id, outcome, occurred_at)
-       VALUES ($1,$2,$3,$4) ON CONFLICT (event_id) DO NOTHING`,
+       VALUES ($1,$2,$3,$4) ON CONFLICT (event_id) DO NOTHING RETURNING event_id`,
       [event.eventId, event.providerRequestId, event.outcome, event.occurredAt],
     );
+    if (inserted.rowCount === 0) return false;
+    this.providerEventIds.add(event.eventId);
     return true;
   }
 
@@ -137,48 +147,25 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
 
   private queue(sql: string, values: readonly unknown[]): void {
     if (!this.pool) return;
-    this.pendingWrite = this.pendingWrite.then(async () => {
-      await this.pool?.query(sql, [...values]);
-    });
+    void this.enqueue(sql, values);
   }
 
-  private async createSchema(): Promise<void> {
-    await this.pool?.query(`
-      CREATE TABLE IF NOT EXISTS payment_attempts (
-        id text PRIMARY KEY,
-        journey_session_id text NOT NULL,
-        amount_minor integer NOT NULL CHECK (amount_minor > 0),
-        currency text NOT NULL CHECK (currency = 'KES'),
-        fare_version_id text NOT NULL,
-        status text NOT NULL,
-        scenario text NOT NULL,
-        masked_phone_number text NOT NULL,
-        idempotency_key text NOT NULL UNIQUE,
-        request_fingerprint text NOT NULL,
-        provider_request_id text,
-        created_at timestamptz NOT NULL,
-        updated_at timestamptz NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS provider_events (
-        event_id text PRIMARY KEY,
-        provider_request_id text NOT NULL,
-        outcome text NOT NULL,
-        occurred_at timestamptz NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS audit_events (
-        id text PRIMARY KEY,
-        type text NOT NULL,
-        payment_attempt_id text NOT NULL,
-        occurred_at timestamptz NOT NULL,
-        details jsonb NOT NULL
-      );
-    `);
+  private async enqueue<Row extends Record<string, unknown> = Record<string, unknown>>(sql: string, values: readonly unknown[]): Promise<{ rowCount: number; rows: Row[] }> {
+    if (!this.pool) return { rowCount: 0, rows: [] };
+    let result: { rowCount: number | null; rows: Row[] } | undefined;
+    this.pendingWrite = this.pendingWrite.then(async () => {
+      result = await this.pool?.query<Row>(sql, [...values]);
+    });
+    await this.pendingWrite;
+    return { rowCount: result?.rowCount ?? 0, rows: result?.rows ?? [] };
   }
 
   private async loadSnapshot(): Promise<void> {
     const paymentRows = await this.pool?.query<{
       id: string;
       journey_session_id: string;
+      trip_id: string | null;
+      destination_stage_id: string | null;
       amount_minor: number;
       currency: 'KES';
       fare_version_id: string;
@@ -195,6 +182,8 @@ export class PaymentStore implements OnModuleInit, OnApplicationShutdown {
       const payment: StoredPayment = {
         id: row.id,
         journeySessionId: row.journey_session_id,
+        ...(row.trip_id ? { tripId: row.trip_id } : {}),
+        ...(row.destination_stage_id ? { destinationStageId: row.destination_stage_id } : {}),
         amountMinor: row.amount_minor,
         currency: row.currency,
         fareVersionId: row.fare_version_id,

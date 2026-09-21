@@ -21,10 +21,42 @@ describe('Phase 0 HTTP integration', () => {
 
   it('serves the synthetic journey session by public URL code', async () => {
     const response = await fetch(`${baseUrl}/api/v1/journey-sessions/demo-nairobi-cbd-westlands`);
-    const body = (await response.json()) as { fare: { amountMinor: number; fareVersionId: string } };
+    const body = (await response.json()) as {
+      fare: { amountMinor: number; fareVersionId: string };
+      route: { directions: readonly { stages: readonly unknown[] }[] };
+    };
 
     expect(response.status).toBe(200);
     expect(body.fare).toEqual(expect.objectContaining({ amountMinor: 8_000, fareVersionId: 'fare-demo-v1' }));
+    expect(body.route.directions[0]?.stages).toHaveLength(3);
+  });
+
+  it('starts an assigned trip and calculates a server-side destination fare', async () => {
+    const tripResponse = await fetch(`${baseUrl}/api/v1/journey-sessions/trips`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': 'tenant-demo-sacco' },
+      body: JSON.stringify({
+        conductorId: 'conductor-demo',
+        vehicleId: 'vehicle-demo-kaa-000d',
+        routeId: 'route-cbd-westlands',
+        directionId: 'direction-cbd-westlands',
+      }),
+    });
+    const trip = (await tripResponse.json()) as { id: string; state: string };
+
+    expect(tripResponse.status).toBe(201);
+    expect(trip.state).toBe('active');
+
+    const quoteResponse = await fetch(`${baseUrl}/api/v1/trips/${trip.id}/fare-quotes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destinationStageId: 'stage-westlands', amountMinor: 1 }),
+    });
+    await expect(quoteResponse.json()).resolves.toMatchObject({
+      amountMinor: 8_000,
+      destinationStageId: 'stage-westlands',
+      fareVersionId: 'fare-demo-v1',
+    });
   });
 
   it('initiates, confirms from an internal mock callback, and returns a redacted view', async () => {
@@ -48,6 +80,58 @@ describe('Phase 0 HTTP integration', () => {
     expect(callback.status).toBe(201);
     expect(JSON.parse(confirmedText)).toMatchObject({ status: 'confirmed' });
     expect(confirmedText).not.toContain(fullPhone);
+  });
+
+  it('associates a payment with the active trip and server fare quote', async () => {
+    const existingTrips = await fetch(`${baseUrl}/api/v1/journey-sessions/trips`, {
+      headers: { 'X-Tenant-Id': 'tenant-demo-sacco' },
+    });
+    const trips = (await existingTrips.json()) as { id: string }[];
+    const trip = trips[0] ?? (await (async () => {
+      const response = await fetch(`${baseUrl}/api/v1/journey-sessions/trips`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': 'tenant-demo-sacco' },
+        body: JSON.stringify({
+          conductorId: 'conductor-demo', vehicleId: 'vehicle-demo-kaa-000d',
+          routeId: 'route-cbd-westlands', directionId: 'direction-cbd-westlands',
+        }),
+      });
+      return (await response.json()) as { id: string };
+    })());
+
+    const paymentResponse = await fetch(`${baseUrl}/api/v1/payments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': 'http-trip-payment-001' },
+      body: JSON.stringify({
+        tripId: trip.id,
+        destinationStageId: 'stage-parklands',
+        phoneNumber: '+254700000008',
+        scenario: 'confirmed',
+      }),
+    });
+    const payment = (await paymentResponse.json()) as { id: string };
+    expect(payment).toMatchObject({
+      tripId: trip.id,
+      destinationStageId: 'stage-parklands',
+      amountMinor: 5_000,
+      status: 'pending',
+    });
+
+    const callback = await fetch(`${baseUrl}/api/v1/mock/payments/${payment.id}/deliver-callbacks`, { method: 'POST' });
+    expect(callback.status).toBe(201);
+    const tripPayments = await fetch(`${baseUrl}/api/v1/admin/trips/${trip.id}/payments`);
+    await expect(tripPayments.json()).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: payment.id, status: 'confirmed', tripId: trip.id }),
+    ]));
+    const close = await fetch(`${baseUrl}/api/v1/journey-sessions/trips/${trip.id}/close`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Workforce-Id': 'conductor-demo', 'X-Role': 'conductor' },
+      body: JSON.stringify({}),
+    });
+    await expect(close.json()).resolves.toMatchObject({
+      state: 'closed',
+      summary: { confirmedPaymentCount: 1, confirmedRevenueMinor: 5_000, paymentAttemptCount: 1 },
+    });
   });
 
   it('fails deterministically and records duplicate callback delivery once', async () => {

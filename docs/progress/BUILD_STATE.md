@@ -13,6 +13,20 @@
 The correction commit is the repository HEAD containing this file. The parent hash above
 is deliberately labelled historical so it does not become a stale claim after commit.
 
+## Phase 1 Sprint 1 checkpoint
+
+- Current branch: `feature/phase-1-payment-vertical-slice`
+- Current implementation checkpoint: `81f7c3c3d9ac850da7d5bd190b3e97f044873b67`
+- Scope: bounded synthetic trip/route/stage/fare/payment/closure vertical slice using
+  provider-neutral development identity context and Mock M-Pesa only.
+- Implemented evidence: assignment-validated trip start, ordered route stages, server-side
+  destination fare quote, trip-linked payment attempts, trusted callback visibility and
+  confirmed-only trip summary.
+- Current tests: 29 API tests pass locally (PostgreSQL durability test passes separately
+  with live PostgreSQL); 3 Playwright journeys pass; all builds pass.
+- This is implementation evidence only. It is not Phase 1 acceptance, production
+  authentication, Android device proof or live M-Pesa evidence.
+
 ## Historical evidence inherited from the parent commit
 
 GitHub Actions run `35406346040` passed for parent commit
@@ -82,3 +96,74 @@ Still pending or blocked:
 - Development data is synthetic; logs and evidence must remain redacted.
 - No live credentials, real-money access, infrastructure deployment or MVP expansion is
   authorized by this baseline.
+
+## Phase 1 Sprint 2 correction evidence (2026-09-19)
+
+- Current branch: `feature/phase-1-payment-vertical-slice`
+- Current HEAD: `796e18a` (`feat(auth): enforce workforce assignment context`)
+- Formal PostgreSQL migrations are implemented in `services/api/src/persistence/migrations.ts` with repeat-safe versions `001_payment_store_baseline` and `002_trip_payment_context`.
+- Workforce authorization validates active development identity, tenant membership, conductor role, exact vehicle/route/direction assignment and validity window before trip start. This is a local synthetic fixture, not production OIDC acceptance.
+- Current API verification: typecheck PASS, lint PASS, 33 tests PASS including live migration repeatability and PostgreSQL restart durability; containers were stopped without removing the persistent volume.
+
+## Phase 1 Sprint 3 local transport evidence (2026-09-19)
+
+- The API and passenger PWA now default to loopback and require explicit `HOST=0.0.0.0` / `VITE_HOST=0.0.0.0` opt-in for trusted-LAN development; no device IP or hotspot gateway is hard-coded.
+- Passenger entry remains the approved scoped QR/short-address route. Local access is separate from provider connectivity and never establishes payment confirmation.
+- API and PWA typechecks, PWA build and local API regression tests passed. A physical Android two-device hotspot test has not been executed; the evidence procedure is in `docs/phase-1/HOTSPOT_PHYSICAL_TEST_PLAN.md`.
+
+## Phase 1 Sprint 4C local resilience evidence (2026-09-20)
+
+- Scope: local development proof only for the approved OD-FRS-004 bounded reconciliation policy; no live M-Pesa, production credentials or controlled DOCX changes.
+- Live Compose evidence: PostgreSQL 16 was healthy on loopback `127.0.0.1:15432`; Redis 7 was healthy on loopback `127.0.0.1:6379` and returned `PONG`.
+- `services/api/test/reconciliation.live.integration.test.ts` passed against those live services using isolated short test delays. It proved durable pending payment creation, minimal BullMQ job payload and delay, worker consumption, missing-callback reconciliation, provider-unavailable recovery, retry exhaustion after exactly five attempts, callback/worker race safety, duplicate-job suppression, API-store/worker restart recovery, manual late trusted failure, and Redis-unavailable enqueue handling.
+- PostgreSQL remains the durable authority for payments and audit evidence. A Redis enqueue failure leaves the already-persisted payment pending and records `payment.reconciliation-scheduling-failed`; it does not claim scheduled work or falsely confirm the payment.
+- The development Redis service is configured with `--save "" --appendonly no`. Worker process restart and API restart were proven while Redis remains running; Redis container recreation or data loss is not a queue-durability guarantee and remains a development-configuration limitation.
+- This is engineering evidence, not Phase 1 acceptance or production readiness. External provider, finance, legal/privacy, hosting and formal approval gates remain unchanged.
+
+## Phase 1 Sprint 5 topology preparation (2026-09-20)
+
+- A configuration-driven PC-hosted local journey URL helper and field-test record are available for trusted development networking. The helper uses an observed runtime host address; no workstation or hotspot IP is embedded in source.
+- Existing API/PWA bind and CORS controls remain explicit configuration: `HOST`, `VITE_HOST`, `VITE_API_URL` and `CORS_ORIGINS`. PostgreSQL and Redis remain loopback-only Compose services.
+- Physical PC-hosted hotspot/local-network proof is recorded in `docs/phase-1/SPRINT_5_FIELD_CONNECTIVITY_RECORD.md`: API and Passenger PWA reachability, active journey resolution, Westlands destination selection and server quote (KES 80.00), payment initiation, trusted Mock M-Pesa confirmation, reconnect, and trip-close invalidation all passed.
+- This does not establish Android hosting. The project owner approved the hybrid edge/cloud boundary: an Android-native companion edge may provide bounded local journey/session functions and synchronized non-financial data, while the existing NestJS/PostgreSQL/Redis/BullMQ/worker stack remains central and must not be deployed in full on the phone. Android implementation remains gated by the readiness checklist, device matrix, security decisions and field validation.
+- Multi-passenger behavior and no-internet local journey were not tested. This evidence is not Phase 1 acceptance, production readiness, live M-Pesa proof or implementation authority for ADR-002.
+
+## Android edge prerequisite Batch 1 (2026-09-20)
+
+- Documentation recommendations are recorded for an API 29 minimum Android runtime, API 31+ preferred deployment generation, Room-over-SQLite persistence, a narrow `/edge/v1` Passenger-PWA API, and server-issued versioned datasets with an idempotent non-financial inbox/outbox pattern.
+- These are **Recommended for approval**, not implementation evidence. Device qualification, exact DMAC contracts, transport/encryption/device-identity/security decisions, concurrency/endurance targets and target-device field proof remain prerequisites.
+- No Android code, embedded database, local edge API, synchronization runtime, controlled DOCX source, provider credential or payment authority was introduced.
+
+## Android edge prerequisite Batch 2 (2026-09-20)
+
+- Security recommendations now cover app-issued device identity bound to Keystore keys, central revocation, encrypted local persistence, restricted local authorization, managed updates and minimized telemetry.
+- Production local TLS/HTTP, enrollment ownership, credential lifecycle, encryption implementation, retention/wipe and rooted-device policy remain decisions; no Android code or controlled DOCX change is claimed.
+
+## Android edge prerequisite Batch 3 (2026-09-20)
+
+- Proposed `/edge/v1` schemas, stable error codes, versioned synchronization envelopes, replay/conflict rules, fare-validity and central payment-handoff boundaries are documented for controlled DMAC review.
+- Concurrency, latency, endurance, charging, thermal, storage/retention and offline-duration values remain Product/Operations decisions and field-evidence gates; no implementation is claimed.
+
+## Android edge prerequisite Batch 4 (2026-09-20)
+
+- Batches 1–3 are consolidated into an explicit project-owner approval package. Production local transport remains a Security decision; operational targets are proposed rather than approved.
+- A future approved Phase 0 skeleton is limited to scaffold, API configuration, Room/Keystore boundaries, local health and tests; it excludes sync, payments and provider credentials.
+
+## Android edge project-owner approvals (2026-09-20)
+
+- AE-01 through AE-07 and AE-09 through AE-11 are project-owner approved. AE-09 through AE-11 are Phase 0/MVP field-validation baselines, not production SLAs.
+- Android Edge Phase 0 skeleton is ready only within the approved bounded scope. Phase 1 local journey and production deployment remain blocked by AE-08 production transport/TLS, controlled publication and required target-device/security evidence.
+
+## Android edge Phase 0 skeleton implementation (2026-09-20)
+
+- `apps/android-host` is now a Kotlin Android project using Gradle Wrapper 8.9, Android Gradle Plugin 8.7.3, Kotlin 2.0.21, JDK 17, `minSdk` 29 and `compileSdk`/`targetSdk` 35.
+- Current local evidence: Wrapper version PASS; debug APK assembly PASS; debug and release JVM test variants PASS; Android lint PASS with warnings only and no errors. The narrow development-only server exposes `GET /edge/v1/health`; JVM tests cover start, stop, endpoint unavailability after stop and restart.
+- Room schema v1 contains non-financial metadata only. A Keystore device-signing abstraction and encrypted-database key-reference boundary exist; no raw key is stored or exposed, and concrete database encryption is not claimed.
+- Room and Android Keystore instrumentation tests are present but **not executed**: `adb devices` found no emulator or physical device. Android foreground/background endurance, hotspot, concurrency and physical device evidence remain field-validation work.
+- No payment, provider credential/evidence, reconciliation, confirmed-revenue, financial persistence, synchronization, local journey/fare endpoint, production TLS or enrolment/revocation functionality was introduced. Central HotPesa remains authoritative. See `docs/phase-1/ANDROID_EDGE_PHASE_0_IMPLEMENTATION.md`.
+
+## Android edge Phase 0 runtime-validation attempt (2026-09-20)
+
+- Host tooling is available: Temurin JDK 17.0.20.1, Gradle 8.9, Android SDK platforms 29/35, Build Tools 34.0.0–37.0.0 and ADB 37.0.1. Debug/release APK assembly, JVM tests, lint and instrumentation-APK compilation passed.
+- `adb devices -l` reported no attached device and `emulator -list-avds` reported no configured AVD. Therefore `DEVICE_RUNTIME_VALIDATION=BLOCKED`; no APK install/launch, Room runtime, Android Keystore runtime, health-HTTP or Android lifecycle result is claimed.
+- Backup/device-transfer exclusion is statically validated through the manifest and XML rules. An authorized device or configured AVD is required for the remaining runtime and instrumentation evidence; this does not authorize Android Edge Phase 1 or production deployment.

@@ -13,6 +13,19 @@
 | Decision date | To be recorded on approval |
 | Review trigger | Material requirement, provider, platform, risk, scale, incident or regulatory change |
 
+## Project-owner decision synchronization
+
+The project owner approved the hybrid edge/cloud boundary for bounded implementation. An
+Android-native companion runtime may provide approved local journey/session functions and
+synchronized non-financial data. The central backend remains authoritative for payments,
+provider credentials and evidence, reconciliation, audit, confirmed revenue, tenant policy
+and durable financial state. Do not deploy the full NestJS/PostgreSQL/Redis/BullMQ/worker
+stack on the conductor phone. A dedicated onboard edge device is the fallback if Android
+fails approved reliability, security, lifecycle, concurrency or endurance criteria.
+
+This preserves the controlled register status above until controlled publication. See
+[ADR-002 deployment analysis](ADR-002-CONDUCTOR-EDGE-DEPLOYMENT-ANALYSIS.md).
+
 ## Context
 
 The host must expose the approved local experience, maintain trip state and operate on affordable devices common in the Kenyan PSV context. Platform restrictions and manufacturer variation can affect hotspot and background behavior.

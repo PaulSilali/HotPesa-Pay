@@ -13,6 +13,16 @@
 | Decision date | To be recorded on approval |
 | Review trigger | Material requirement, provider, platform, risk, scale, incident or regulatory change |
 
+## Project-owner decision synchronization
+
+The project owner approved the Passenger PWA baseline: React, TypeScript and Vite remain
+the passenger UI. The Android edge is a companion runtime and does not replace the PWA;
+the PWA may access the bounded edge over the conductor-controlled local network.
+
+The controlled register status above remains preserved until controlled publication. The
+specific embedded persistence, encryption and synchronization design remains gated by
+[Android edge implementation readiness](../phase-1/ANDROID_EDGE_IMPLEMENTATION_READINESS.md).
+
 ## Context
 
 The vehicle host must survive application restart and temporary loss of cloud connectivity without losing assigned trip state or creating uncontrolled repeated mutations.
